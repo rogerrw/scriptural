@@ -11,6 +11,9 @@ importers:
       '@heroicons/react':
         specifier: ^2.1.4
         version: 2.1.4(react@19.0.0-rc-f38c22b244-20240704)
+      '@radix-ui/react-slot':
+        specifier: ^1.1.0
+        version: 1.1.0(@types/react@18.3.3)(react@19.0.0-rc-f38c22b244-20240704)
       '@tailwindcss/forms':
         specifier: ^0.5.7
         version: 0.5.7(tailwindcss@3.4.4)
@@ -84,6 +87,9 @@ importers:
       '@storybook/addon-onboarding':
         specifier: ^8.3.6
         version: 8.3.6(react@19.0.0-rc-f38c22b244-20240704)(storybook@8.3.6(bufferutil@4.0.8)(utf-8-validate@6.0.3))
+      '@storybook/addon-themes':
+        specifier: ^8.3.6
+        version: 8.4.5(storybook@8.3.6(bufferutil@4.0.8)(utf-8-validate@6.0.3))
       '@storybook/blocks':
         specifier: ^8.3.6
         version: 8.3.6(react-dom@19.0.0-rc-f38c22b244-20240704(react@19.0.0-rc-f38c22b244-20240704))(react@19.0.0-rc-f38c22b244-20240704)(storybook@8.3.6(bufferutil@4.0.8)(utf-8-validate@6.0.3))
@@ -1120,6 +1126,24 @@ packages:
       webpack-plugin-serve:
         optional: true
 
+  '@radix-ui/react-compose-refs@1.1.0':
+    resolution: {integrity: sha512-b4inOtiaOnYf9KWyO3jAeeCG6FeyfY6ldiEPanbUjWd+xIk5wZeHa8yVwmrJ2vderhu/BQvzCrJI0lHd+wIiqw==}
+    peerDependencies:
+      '@types/react': '*'
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+
+  '@radix-ui/react-slot@1.1.0':
+    resolution: {integrity: sha512-FUCf5XMfmW4dtYl69pdS4DbxKy8nj4M7SafBgPllysxmdachynNflAdp/gCsnYWNDnge6tI9onzMp5ARYc1KNw==}
+    peerDependencies:
+      '@types/react': '*'
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+
   '@storybook/addon-actions@8.3.6':
     resolution: {integrity: sha512-nOqgl0WoZK2KwjaABaXMoIgrIHOQl9inOzJvqQau0HOtsvnXGXYfJXYnpjZenoZDoZXKbUDl0U2haDFx2a2fJw==}
     peerDependencies:
@@ -1178,6 +1202,11 @@ packages:
     resolution: {integrity: sha512-+VXpM8SIHX2cn30qLlMvER9/6iioFRSn2sAfLniqy4RrcQmcMP+qgE7ZzbzExt7cneJh3VFsYqBS/HElu14Vgg==}
     peerDependencies:
       storybook: ^8.3.6
+
+  '@storybook/addon-themes@8.4.5':
+    resolution: {integrity: sha512-4ZheodvdAjAXbzx3HLmPxin5ULh1lPp7QH8Yi8SijRcreUYFiKvPfaTvR0pEcaFppwPXu1gVQlud5GLMTLEQgQ==}
+    peerDependencies:
+      storybook: ^8.4.5
 
   '@storybook/addon-toolbars@8.3.6':
     resolution: {integrity: sha512-FJH+lRoZXENfpMR/G09ZqB0TmL/k6bv07GN1ysoVs420tKRgjfz6uXaZz5COrhcdISr5mTNmG+mw9x7xXTfX3Q==}
@@ -5162,6 +5191,19 @@ snapshots:
       type-fest: 2.19.0
       webpack-hot-middleware: 2.26.1
 
+  '@radix-ui/react-compose-refs@1.1.0(@types/react@18.3.3)(react@19.0.0-rc-f38c22b244-20240704)':
+    dependencies:
+      react: 19.0.0-rc-f38c22b244-20240704
+    optionalDependencies:
+      '@types/react': 18.3.3
+
+  '@radix-ui/react-slot@1.1.0(@types/react@18.3.3)(react@19.0.0-rc-f38c22b244-20240704)':
+    dependencies:
+      '@radix-ui/react-compose-refs': 1.1.0(@types/react@18.3.3)(react@19.0.0-rc-f38c22b244-20240704)
+      react: 19.0.0-rc-f38c22b244-20240704
+    optionalDependencies:
+      '@types/react': 18.3.3
+
   '@storybook/addon-actions@8.3.6(storybook@8.3.6(bufferutil@4.0.8)(utf-8-validate@6.0.3))':
     dependencies:
       '@storybook/global': 5.0.0
@@ -5259,6 +5301,11 @@ snapshots:
   '@storybook/addon-outline@8.3.6(storybook@8.3.6(bufferutil@4.0.8)(utf-8-validate@6.0.3))':
     dependencies:
       '@storybook/global': 5.0.0
+      storybook: 8.3.6(bufferutil@4.0.8)(utf-8-validate@6.0.3)
+      ts-dedent: 2.2.0
+
+  '@storybook/addon-themes@8.4.5(storybook@8.3.6(bufferutil@4.0.8)(utf-8-validate@6.0.3))':
+    dependencies:
       storybook: 8.3.6(bufferutil@4.0.8)(utf-8-validate@6.0.3)
       ts-dedent: 2.2.0
 
