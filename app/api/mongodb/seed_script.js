@@ -1,8 +1,7 @@
 const fs = require("fs");
-const os = require('os');
 const path = require("path")
 
-let booksMapping = {
+const booksMapping = {
     '1CH': '1 Chronicles',
     '1CO': '1 Corinthians',
     '1JN': '1 John',
@@ -71,8 +70,8 @@ let booksMapping = {
     'ZEP': 'Zephaniah',
 }
 
-function listFiles(dirPaths) {
-    let objs = {}
+export function listFiles(dirPaths) {
+    const objs = {}
     function readDirSync(currPath) {
         const entries = fs.readdirSync(currPath, {withFileTypes: true})
         entries.forEach((entry) => {
@@ -88,7 +87,6 @@ function listFiles(dirPaths) {
                 let translation = fileData.version; // ONLY DO ESV, NASB, and KJV
                 if (translation === "ESV" || translation === "NASB" || translation === "KJV") {
                     if (!objs[book]) objs[book] = {
-                        id: book,
                         chapters: Array(chapters.length)
                     }
                     for (let i = 0; i < chapters.length; i++) {
@@ -130,7 +128,6 @@ function listFiles(dirPaths) {
         readDirSync(path)
 
     })
-    fs.writeFileSync("data.json", JSON.stringify(objs, null, 4), "utf8");
+    return objs
 }
-listFiles([os.homedir() + "/holybooks/EN/OT", os.homedir() + "/holybooks/EN/NT"])
 
