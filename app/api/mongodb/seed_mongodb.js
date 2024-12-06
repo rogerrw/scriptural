@@ -1,6 +1,11 @@
 import fs from "fs";
 import path from "path";
 import os from "os";
+import { MongoClient } from "mongodb";
+
+const uri = "mongodb://localhost:27017/" // default uri for local instance
+const client = new MongoClient(uri);
+const DB = "bible";
 
 const holybooksDir = [
     os.homedir() + "/holybooks/EN/OT",
@@ -76,7 +81,7 @@ const booksMapping = {
     'ZEP': 'Zephaniah',
 }
 
-export function listFiles(dirPaths) {
+function listFiles(dirPaths) {
     const objs = {}
     function readDirSync(currPath) {
         const entries = fs.readdirSync(currPath, {withFileTypes: true})
@@ -134,9 +139,41 @@ export function listFiles(dirPaths) {
         readDirSync(path)
 
     })
-    fs.writeFileSync("data.json", JSON.stringify(objs, null, 4), "utf8");
+    fs.writeFileSync("./app/api/mongodb/data.json", JSON.stringify(objs, null, 4), "utf8");
     return objs
 }
 
-listFiles(holybooksDir);
+async function seedMongoDb() {
+    try {
+        // Connect to database
+        await client.connect();
+        const databases = await client.db().admin().listDatabases();
+        const dbExist = databases.databases.some((db) => db.name === "bible")
 
+        if (!dbExist) {
+            console.log("Database does not exist. Creating database...");
+            const database = client.db(DB);
+            database.createCollection("bible"); // delete after rerunning
+            console.log("Successfully created Bible database!")
+        }
+        const holybooksData = listFiles(holybooksDir)
+        console.log("Seeding holybooks into MongoDB...")
+        for (let [bookName, bookData] of Object.entries(holybooksData)) {
+            const database = client.db(DB);
+            // check if collection does not exist
+            const findCollection = await database.listCollections({name: bookName}).toArray();
+            if (findCollection.length === 0) {
+                database.createCollection(bookName);
+            }
+            await database.collection(bookName).insertMany(bookData.chapters);
+            await database.collection("bible").drop();
+        }
+    } catch (error) {
+        console.log(`Error: ${error}`)
+
+    } finally {
+        console.log("Finished seeding MongoDB!")
+        await client.close();
+    }
+}
+seedMongoDb();
