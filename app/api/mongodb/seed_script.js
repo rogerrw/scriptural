@@ -1,5 +1,11 @@
-const fs = require("fs");
-const path = require("path")
+import fs from "fs";
+import path from "path";
+import os from "os";
+
+const holybooksDir = [
+    os.homedir() + "/holybooks/EN/OT",
+    os.homedir() + "/holybooks/EN/NT"
+]
 
 const booksMapping = {
     '1CH': '1 Chronicles',
@@ -128,6 +134,9 @@ export function listFiles(dirPaths) {
         readDirSync(path)
 
     })
+    fs.writeFileSync("data.json", JSON.stringify(objs, null, 4), "utf8");
     return objs
 }
+
+listFiles(holybooksDir);
 
