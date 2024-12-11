@@ -8,7 +8,7 @@ const client = new MongoClient(uri);
 
 const DB = "bible";
 
-export async function handler() {
+async function handler() {
 
 }
 export {handler as GET, handler as POST}
