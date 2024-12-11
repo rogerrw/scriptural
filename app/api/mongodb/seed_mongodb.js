@@ -1,7 +1,7 @@
-import fs from "fs";
-import path from "path";
-import os from "os";
-import { MongoClient } from "mongodb";
+const fs = require("fs");
+const path = require("path");
+const os = require("os");
+const { MongoClient } = require("mongodb");
 
 const uri = "mongodb://localhost:27017/" // default uri for local instance
 const client = new MongoClient(uri);
