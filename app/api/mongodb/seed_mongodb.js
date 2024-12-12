@@ -2,15 +2,9 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 const { MongoClient } = require("mongodb");
+require('dotenv').config();
 
-const uri = "mongodb://localhost:27017/" // default uri for local instance
-const client = new MongoClient(uri);
-const DB = "bible";
-
-const holybooksDir = [
-    os.homedir() + "/holybooks/EN/OT",
-    os.homedir() + "/holybooks/EN/NT"
-]
+const client = new MongoClient(process.env.MONGO_URL);
 
 const booksMapping = {
     '1CH': '1 Chronicles',
@@ -147,32 +141,35 @@ async function seedMongoDb() {
     try {
         // Connect to database
         await client.connect();
-        const databases = await client.db().admin().listDatabases();
-        const dbExist = databases.databases.some((db) => db.name === "bible")
+        const { databases } = await client.db().admin().listDatabases();
+        const dbExist = databases.some((db) => db.name === process.env.MONGO_DATABASE)
 
         if (!dbExist) {
             console.log("Database does not exist. Creating database...");
-            const database = client.db(DB);
-            database.createCollection("bible"); // delete after rerunning
+            const database = client.db(process.env.MONGO_DATABASE);
+            await database.createCollection("bible"); // delete after rerunning
             console.log("Successfully created Bible database!")
         }
-        const holybooksData = listFiles(holybooksDir)
+        const holybooksData = listFiles([
+            `${process.env.HOLYBOOKS_PATHNAME}/EN/OT`,
+            `${process.env.HOLYBOOKS_PATHNAME}/EN/NT`,
+        ]);
+
         console.log("Seeding holybooks into MongoDB...")
         for (let [bookName, bookData] of Object.entries(holybooksData)) {
-            const database = client.db(DB);
+            const database = client.db(process.env.MONGO_DATABASE);
             // check if collection does not exist
             const findCollection = await database.listCollections({name: bookName}).toArray();
             if (findCollection.length === 0) {
-                database.createCollection(bookName);
+                await database.createCollection(bookName);
             }
             await database.collection(bookName).insertMany(bookData.chapters);
             await database.collection("bible").drop();
         }
     } catch (error) {
-        console.log(`Error: ${error}`)
-
+        console.log(`Error: ${error}`);
     } finally {
-        console.log("Finished seeding MongoDB!")
+        console.log("Finished seeding MongoDB!");
         await client.close();
     }
 }
