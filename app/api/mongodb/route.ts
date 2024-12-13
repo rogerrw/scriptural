@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-const { MongoClient } = require('mongodb');
-const client = new MongoClient(process.env.MONGO_URL);
+const { MongoClient } = require("mongodb");
 require('dotenv').config();
+
+const client = new MongoClient(process.env.MONGO_URL);
+
+type DatabaseNames = {
+    name: string;
+}
 
 async function fetchVerse(bookName: string, chapterNum: number, verseNum: number, translation: string) {
     try {
         await client.connect();
-        const { databases } = await client.db().admin().listDatabases();
-
-        const dbExist = databases.some((db) => db.name === process.env.MONGO_DATABASE)
+        const { databases } = await client.db().admin().listDatabases({nameOnly: true});
+        const dbExist = databases.some((db: DatabaseNames) => db.name === process.env.MONGO_DATABASE)
         if (!dbExist) {
             return `Database '${process.env.MONGO_DATABASE}' does not exist`;
         }
