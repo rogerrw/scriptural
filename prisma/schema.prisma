@@ -1,0 +1,50 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id          Int     @id @default(autoincrement())
+  email       String  @unique
+  username    String  @unique
+  experience  Int
+}
+
+model UserVerse {
+  id Int @id @default(autoincrement())
+  userId Int
+  book String
+  chapter Int
+  verse Int
+}
+
+model UserVerseReview {
+  id Int @id @default(autoincrement())
+  userVerseId Int
+  reviewedAt DateTime
+  difficulty Int
+  accuracy Int
+  detailedResults Json
+}
+
+model Collection {
+  id Int @id @default(autoincrement())
+}
+
+model UserCollection {
+  id Int @id @default(autoincrement())
+  userId Int
+  collectionId Int
+}
+
+model CollectionVerse {
+  id Int @id @default(autoincrement())
+  collectionId Int
+  book String
+  chapter Int
+  verse Int
+}
