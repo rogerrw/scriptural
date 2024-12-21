@@ -6,7 +6,9 @@
     "start": "next start",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "seed": "node ./app/api/mongodb/seed_mongodb.js"
+    "seed": "node ./app/api/mongodb/seed_mongodb.js",
+    "lint": "eslint .",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@heroicons/react": "^2.1.4",
@@ -47,6 +49,8 @@
     "@types/node": "20.14.8",
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
+    "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6.9",
     "storybook": "^8.3.6"
   },
   "engines": {
