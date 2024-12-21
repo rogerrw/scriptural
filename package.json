@@ -7,7 +7,6 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "seed": "node ./app/api/mongodb/seed_mongodb.js",
-    "lint": "eslint .",
     "format": "prettier --write ."
   },
   "dependencies": {
