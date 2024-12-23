@@ -3,17 +3,17 @@ import { Meta, StoryFn } from '@storybook/react';
 import { Badge, BadgeProps } from '@/components/ui/badge';
 
 export default {
-    title: 'Components/Badge',
-    component: Badge,
-    argTypes: {
-      variant: {
-        control: {
-          type: 'select',
-          options: ['primary', 'secondary', 'danger'],
-        },
+  title: 'Components/Badge',
+  component: Badge,
+  argTypes: {
+    variant: {
+      control: {
+        type: 'select',
+        options: ['primary', 'secondary', 'danger'],
       },
     },
-  } as Meta;
+  },
+} as Meta;
 
 const Template: StoryFn<BadgeProps> = (args) => <Badge {...args} />;
 
@@ -40,4 +40,3 @@ Destructive.args = {
   variant: 'destructive',
   children: 'Destructive',
 };
-

@@ -29,7 +29,7 @@ export const Default = Template.bind({});
 Default.args = {
   children: 'Default Button',
   variant: 'default',
-  size: 'default'
+  size: 'default',
 };
 
 export const Outline = Template.bind({});
@@ -38,10 +38,9 @@ Outline.args = {
   variant: 'outline',
 };
 
-
 export const Disabled = Template.bind({});
 Disabled.args = {
   children: 'Secondary Button',
   pressed: false,
-  disabled: true
+  disabled: true,
 };
