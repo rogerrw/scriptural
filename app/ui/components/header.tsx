@@ -1,18 +1,20 @@
-import { Button } from '@/components/ui/button'
-import React from 'react'
-
+import { Button } from '@/components/ui/button';
+import React from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 const Header = () => {
   return (
-    <div className='flex justify-between p-6 text-center'>
+    <header className="flex justify-between">
+      <Link href="/">
+        <Image src="/sample_logo.png" width={240} height={40} alt="Picture of the author" />
+      </Link>
       <div>
-        {/* TODO: convert to logo */}
-        Scriptural
+        <Button>
+          <Link href="/signin">Login / Sign Up</Link>
+        </Button>
       </div>
-      <div>
-        <Button>Create an account</Button>
-      </div>
-    </div>
-  )
-}
+    </header>
+  );
+};
 
-export default Header
+export default Header;
