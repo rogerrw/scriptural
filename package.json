@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.1.4",
+    "@prisma/client": "6.1.0",
     "@radix-ui/react-slot": "^1.1.0",
     "@tailwindcss/forms": "^0.5.7",
     "@vercel/postgres": "^0.8.0",
@@ -50,6 +51,7 @@
     "@types/react-dom": "18.3.0",
     "prettier": "^3.4.2",
     "prettier-plugin-tailwindcss": "^0.6.9",
+    "prisma": "^6.1.0",
     "storybook": "^8.3.6"
   },
   "engines": {
