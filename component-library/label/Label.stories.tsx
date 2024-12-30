@@ -1,6 +1,6 @@
 import React from 'react';
 import { Meta, StoryFn } from '@storybook/react';
-import { Label } from '@/components/ui/label';
+import { Label } from '@/component-library/label';
 import { VariantProps } from 'class-variance-authority';
 
 export default {

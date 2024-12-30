@@ -1,10 +1,10 @@
 import React from 'react';
 import { Meta, StoryFn } from '@storybook/react';
-import { Button, ButtonProps } from '../components/ui/button';
+import { Badge, BadgeProps } from '@/component-library/badge';
 
 export default {
-  title: 'Components/Button',
-  component: Button,
+  title: 'Components/Badge',
+  component: Badge,
   argTypes: {
     variant: {
       control: {
@@ -12,38 +12,31 @@ export default {
         options: ['primary', 'secondary', 'danger'],
       },
     },
-    onClick: { action: 'clicked' },
   },
 } as Meta;
 
-const Template: StoryFn<ButtonProps> = (args) => <Button {...args} />;
+const Template: StoryFn<BadgeProps> = (args) => <Badge {...args} />;
 
 export const Default = Template.bind({});
 Default.args = {
   variant: 'default',
-  children: 'Default Button',
+  children: 'Default',
 };
 
 export const Secondary = Template.bind({});
 Secondary.args = {
   variant: 'secondary',
-  children: 'Secondary Button',
+  children: 'Secondary',
+};
+
+export const Outline = Template.bind({});
+Outline.args = {
+  variant: 'outline',
+  children: 'Outline',
 };
 
 export const Destructive = Template.bind({});
 Destructive.args = {
   variant: 'destructive',
-  children: 'Destructive Button',
-};
-
-export const Ghost = Template.bind({});
-Ghost.args = {
-  variant: 'ghost',
-  children: 'Ghost Button',
-};
-
-export const Link = Template.bind({});
-Link.args = {
-  variant: 'link',
-  children: 'A link',
+  children: 'Destructive',
 };
