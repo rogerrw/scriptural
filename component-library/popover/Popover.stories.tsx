@@ -1,10 +1,11 @@
 import React from 'react';
 import { Meta, StoryFn } from '@storybook/react';
-import { Popover, PopoverTrigger, PopoverContent, PopoverAnchor } from '@/components/ui/popover';
 import { PopoverProps } from '@radix-ui/react-popover';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
+
+import { Popover, PopoverTrigger, PopoverContent, PopoverAnchor } from '@/component-library/popover';
+import { Button } from '@/component-library/button';
+import { Label } from '@/component-library/label';
+import { Input } from '@/component-library/input';
 
 export default {
   title: 'Components/Popover',

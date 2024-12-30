@@ -1,6 +1,6 @@
 import React from 'react';
 import { Meta, StoryFn } from '@storybook/react';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/component-library/input';
 import { VariantProps } from 'class-variance-authority';
 
 export default {

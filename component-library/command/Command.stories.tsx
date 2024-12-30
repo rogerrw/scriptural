@@ -10,7 +10,7 @@ import {
   CommandItem,
   CommandShortcut,
   CommandSeparator,
-} from '../components/ui/command';
+} from '@/component-library/command';
 
 export default {
   title: 'Components/Command',
