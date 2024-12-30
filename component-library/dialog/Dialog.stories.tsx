@@ -1,5 +1,6 @@
 import React from 'react';
 import { Meta, StoryFn } from '@storybook/react';
+
 import {
   Dialog,
   DialogPortal,
@@ -11,10 +12,11 @@ import {
   DialogFooter,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
+} from '@/component-library/dialog';
+import { Button } from '@/component-library/button';
+import { Label } from '@/component-library/label';
+import { Input } from '@/component-library/input';
+
 export default {
   title: 'Components/Dialog',
   component: Dialog,

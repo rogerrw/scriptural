@@ -1,6 +1,6 @@
 import React from 'react';
 import { Meta, StoryFn } from '@storybook/react';
-import { Toggle } from '../components/ui/toggle';
+import { Toggle } from '@/component-library/toggle';
 import { VariantProps } from 'class-variance-authority';
 
 export default {
