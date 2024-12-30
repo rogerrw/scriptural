@@ -5,12 +5,13 @@ import { Badge, BadgeProps } from '@/components/ui/badge';
 export default {
   title: 'Components/Badge',
   component: Badge,
+  args: {
+    children: 'Default',
+  },
   argTypes: {
     variant: {
-      control: {
-        type: 'select',
-        options: ['primary', 'secondary', 'danger'],
-      },
+      control: 'select',
+      options: ['default', 'secondary', 'outline', 'destructive'],
     },
   },
 } as Meta;
@@ -20,7 +21,6 @@ const Template: StoryFn<BadgeProps> = (args) => <Badge {...args} />;
 export const Default = Template.bind({});
 Default.args = {
   variant: 'default',
-  children: 'Default',
 };
 
 export const Secondary = Template.bind({});

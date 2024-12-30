@@ -6,13 +6,14 @@ import { withThemeByClassName } from '@storybook/addon-themes';
 const preview: Preview = {
   parameters: {
     controls: {
+      sort: 'requiredFirst',
       matchers: {
         color: /(background|color)$/i,
         date: /Date$/i,
       },
     },
   },
-
+  tags: ['autodocs'],
   decorators: [
     withThemeByClassName({
       themes: {

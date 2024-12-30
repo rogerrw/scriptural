@@ -5,45 +5,51 @@ import { Button, ButtonProps } from '../components/ui/button';
 export default {
   title: 'Components/Button',
   component: Button,
+  args: {
+    children: "Default",
+    size: 'default',
+  },
   argTypes: {
     variant: {
-      control: {
-        type: 'select',
-        options: ['primary', 'secondary', 'danger'],
-      },
+      control: 'select',
+      options: ['default', 'secondary', 'destructive', 'ghost', 'link']
+    },
+    size: {
+      control: 'select',
+      options: ['default', 'sm', 'lg', 'icon']
     },
     onClick: { action: 'clicked' },
   },
 } as Meta;
 
-const Template: StoryFn<ButtonProps> = (args) => <Button {...args} />;
+const Template: StoryFn<ButtonProps> = (args) => (<Button {...args}/>);
+
 
 export const Default = Template.bind({});
 Default.args = {
   variant: 'default',
-  children: 'Default Button',
 };
 
 export const Secondary = Template.bind({});
 Secondary.args = {
   variant: 'secondary',
-  children: 'Secondary Button',
+  children: 'Secondary',
 };
 
 export const Destructive = Template.bind({});
 Destructive.args = {
   variant: 'destructive',
-  children: 'Destructive Button',
+  children: 'Destructive',
 };
 
 export const Ghost = Template.bind({});
 Ghost.args = {
   variant: 'ghost',
-  children: 'Ghost Button',
+  children: 'Ghost',
 };
 
 export const Link = Template.bind({});
 Link.args = {
   variant: 'link',
-  children: 'A link',
+  children: 'Link',
 };

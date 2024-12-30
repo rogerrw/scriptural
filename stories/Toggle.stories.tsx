@@ -8,16 +8,12 @@ export default {
   component: Toggle,
   argTypes: {
     variant: {
-      control: {
-        type: 'select',
-        options: ['default', 'outline'],
-      },
+      control: 'select',
+      options: ['default', 'outline']
     },
     size: {
-      control: {
-        type: 'select',
-        options: ['default', 'sm', 'lg'],
-      },
+      control: 'select',
+      options: ['default', 'sm', 'lg'],
     },
     onClick: { action: 'clicked' },
   },
@@ -40,7 +36,7 @@ Outline.args = {
 
 export const Disabled = Template.bind({});
 Disabled.args = {
-  children: 'Secondary Button',
+  children: 'Disabled',
   pressed: false,
   disabled: true,
 };

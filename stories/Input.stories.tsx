@@ -6,6 +6,9 @@ import { VariantProps } from 'class-variance-authority';
 export default {
   title: 'Components/Input',
   component: Input,
+  argTypes: {
+    type: {control: 'select', options: ['email', 'file']}
+  }
 } as Meta;
 
 const Template: StoryFn<VariantProps<typeof Input>> = (args) => <Input {...args} />;
@@ -18,12 +21,12 @@ Default.args = {
 
 export const File = Template.bind({});
 File.args = {
+  ...Default.args,
   type: 'file',
 };
 
 export const Disabled = Template.bind({});
 Disabled.args = {
+  ...Default.args,
   disabled: true,
-  type: 'email',
-  placeholder: 'Email',
 };

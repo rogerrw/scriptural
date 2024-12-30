@@ -32,14 +32,14 @@ export default {
 } as Meta;
 
 interface CustomDialog extends React.ComponentProps<typeof Dialog> {
-  buttonTitle: string;
+  buttonText: string;
   children: React.ReactNode;
 }
 
-const Template: StoryFn<CustomDialog> = ({ buttonTitle, children, ...args }) => (
+const Template: StoryFn<CustomDialog> = ({ buttonText, children, ...args }) => (
   <Dialog {...args}>
     <DialogTrigger asChild>
-      <Button variant="outline">{buttonTitle}</Button>
+      <Button variant="outline">{buttonText}</Button>
     </DialogTrigger>
     {children}
   </Dialog>
@@ -47,7 +47,7 @@ const Template: StoryFn<CustomDialog> = ({ buttonTitle, children, ...args }) => 
 
 export const Profile = Template.bind({});
 Profile.args = {
-  buttonTitle: 'Edit Profile',
+  buttonText: 'Edit Profile',
   children: (
     <DialogContent className="sm:max-w-[425px]">
       <DialogHeader>
