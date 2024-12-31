@@ -16,6 +16,7 @@ export default {
       options: ['default', 'sm', 'lg'],
     },
     onClick: { action: 'clicked' },
+    onPressedChange: {action: 'toggled'}
   },
 } as Meta;
 

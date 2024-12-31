@@ -7,7 +7,15 @@ export default {
   title: 'Components/Input',
   component: Input,
   argTypes: {
-    type: {control: 'select', options: ['email', 'file']}
+    value: {control: 'text'},
+    placeholder: {control: 'text'},
+    size: {control: 'radio', options: ['small','medium','large'], mapping: {
+      'small': 10,
+      'medium:': 20,
+      'large': 35
+    }},
+    type: {table: {disable: true}},
+    onChange: {action: 'change'},
   }
 } as Meta;
 
@@ -20,6 +28,7 @@ Default.args = {
 };
 
 export const File = Template.bind({});
+File.parameters = {controls: {disable: true}}
 File.args = {
   ...Default.args,
   type: 'file',

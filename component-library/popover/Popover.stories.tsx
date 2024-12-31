@@ -8,10 +8,13 @@ export default {
   title: 'Components/Popover',
   component: Popover,
   argTypes: {
+    open: {control: 'boolean'},
+    defaultOpen: {control: 'boolean'},
     align: {control: 'select', options: ['start', 'end', 'center']},
-    asChild: {control: 'boolean'}
+    asChild: {control: 'boolean'},
+    onOpenChange: {action: 'open'},
+    modal: {control: 'boolean'},
   },
-  onClick: { action: 'clicked' },
 } as Meta;
 
 const Template: StoryFn<PopoverProps & PopoverTriggerProps & PopoverAnchorProps & PopoverContentProps> = (args) => (

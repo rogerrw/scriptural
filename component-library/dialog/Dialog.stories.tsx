@@ -29,6 +29,7 @@ export default {
       control: 'select',
       options: ['default', 'profile']
     },
+    onOpenChange: {action: 'open'},
   }
 } as Meta;
 
@@ -41,6 +42,7 @@ interface CustomDialog extends React.ComponentProps<typeof Dialog> {
   children: DialogType;
 
 }
+
 const Dialogs = {
   [DialogType.DEFAULT]: (
     <DialogContent className="sm:max-w-[425px]">
@@ -87,7 +89,6 @@ const Dialogs = {
 function updateDialogContent(type: DialogType): React.ReactNode {
   return Dialogs[type];
 }
-
 const Template: StoryFn<CustomDialog> = ({ buttonText, children, ...args }) => (
   <Dialog {...args}>
     <DialogTrigger asChild>
@@ -96,7 +97,6 @@ const Template: StoryFn<CustomDialog> = ({ buttonText, children, ...args }) => (
     {updateDialogContent(children)}
   </Dialog>
 );
-
 
 export const Default = Template.bind({});
 Default.args = {
