@@ -16,7 +16,7 @@ export default {
     },
     size: {
       control: 'select',
-      options: ['default', 'sm', 'lg', 'icon']
+      options: ['default', 'sm', 'md', 'lg']
     },
     onClick: { action: 'clicked' },
   },

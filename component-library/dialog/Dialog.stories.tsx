@@ -20,37 +20,42 @@ import { Input } from '@/component-library/input';
 export default {
   title: 'Components/Dialog',
   component: Dialog,
-  parameters: {
-    title: '',
-    description: '',
+  args: {
+    children: 'default'
   },
   argTypes: {
     children: {
-      table: {
-        disable: true,
-      },
+      description: 'The content of the dialog. Should be wrapped with `DialogTitle`.',
+      control: 'select',
+      options: ['default', 'profile']
     },
-  },
+  }
 } as Meta;
 
+enum DialogType {
+  DEFAULT = 'default',
+  PROFILE = 'profile'
+}
 interface CustomDialog extends React.ComponentProps<typeof Dialog> {
   buttonText: string;
-  children: React.ReactNode;
+  children: DialogType;
+
 }
-
-const Template: StoryFn<CustomDialog> = ({ buttonText, children, ...args }) => (
-  <Dialog {...args}>
-    <DialogTrigger asChild>
-      <Button variant="outline">{buttonText}</Button>
-    </DialogTrigger>
-    {children}
-  </Dialog>
-);
-
-export const Profile = Template.bind({});
-Profile.args = {
-  buttonText: 'Edit Profile',
-  children: (
+const Dialogs = {
+  [DialogType.DEFAULT]: (
+    <DialogContent className="sm:max-w-[425px]">
+      <DialogHeader>
+        <DialogTitle>Dialog Title</DialogTitle>
+          <div>
+            <p className="grid gap-4 py-4 ">This is some dialog content.</p>
+          </div>
+      </DialogHeader>
+      <DialogFooter>
+        <Button type="submit">Save changes</Button>
+      </DialogFooter>
+    </DialogContent>
+  ),
+  [DialogType.PROFILE]: (
     <DialogContent className="sm:max-w-[425px]">
       <DialogHeader>
         <DialogTitle>Edit Profile</DialogTitle>
@@ -76,5 +81,24 @@ Profile.args = {
         <Button type="submit">Save changes</Button>
       </DialogFooter>
     </DialogContent>
-  ),
+  )
+
+}
+function updateDialogContent(type: DialogType): React.ReactNode {
+  return Dialogs[type];
+}
+
+const Template: StoryFn<CustomDialog> = ({ buttonText, children, ...args }) => (
+  <Dialog {...args}>
+    <DialogTrigger asChild>
+      <Button variant="outline">{buttonText}</Button>
+    </DialogTrigger>
+    {updateDialogContent(children)}
+  </Dialog>
+);
+
+
+export const Default = Template.bind({});
+Default.args = {
+  buttonText: 'Open Dialog',
 };
