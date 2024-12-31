@@ -15,21 +15,26 @@ import {
 export default {
   title: 'Components/Command',
   component: Command,
+  args: {
+    placeholder: 'Search item',
+  },
   argTypes: {
-    shouldFilter: {control: 'boolean', description: 'Toggle to enable or disable filtering while searching an item'},
-    placeholder: {control: 'text', description: 'The placeholder for the search input.'}
-  }
+    shouldFilter: {
+      control: 'boolean',
+      description: 'Toggle to enable or disable filtering while searching an item',
+    },
+    placeholder: { control: 'text', description: 'The placeholder for the search input.' },
+  },
 } as Meta;
 
 interface CustomCommand {
   children: typeof Command;
   placeholder: string;
-
 }
 
 const Template: StoryFn<CustomCommand> = (args) => (
-  <Command {...args}> 
-    <CommandInput placeholder={args.placeholder}/>
+  <Command {...args}>
+    <CommandInput placeholder={args.placeholder} />
     <CommandList>
       <CommandEmpty>No results found.</CommandEmpty>
       <CommandGroup heading="Suggestions">
