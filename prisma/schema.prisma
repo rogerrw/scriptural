@@ -1,0 +1,80 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id         String      @id @default(cuid())
+  email      String      @unique
+  name       String      @unique
+  experience Int         @default(0)
+  userVerses UserVerse[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@map("users")
+}
+
+model UserVerse {
+  id            Int      @id @default(autoincrement())
+  user          User     @relation(fields: [userId], references: [id])
+  userId        String
+  book          String
+  chapter       Int
+  startingVerse Int
+  endingVerse   Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("userVerses")
+}
+
+model UserVerseReview {
+  id              Int      @id @default(autoincrement())
+  userVerseId     Int
+  reviewedAt      DateTime
+  difficulty      Int
+  accuracy        Int
+  detailedResults Json
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("userVerseReviews")
+}
+
+model Collection {
+  id               String            @id @default(cuid())
+  name             String
+  collectionVerses CollectionVerse[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@map("collections")
+}
+
+model UserCollection {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  collectionId Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("userCollections")
+}
+
+model CollectionVerse {
+  id           Int        @id @default(autoincrement())
+  collection   Collection @relation(fields: [collectionId], references: [id])
+  collectionId String
+  book         String
+  chapter      Int
+  verse        Int
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@map("collectionVerses")
+}
