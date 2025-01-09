@@ -3,7 +3,7 @@ import React from 'react';
 
 const Footer = () => {
   return (
-    <footer className="flex gap-4">
+    <footer className="flex gap-4 border-b-8 px-8 py-2 text-white">
       <Link href="/">About</Link>
       <Link href="/">Support</Link>
       <Link href="/">Terms</Link>
