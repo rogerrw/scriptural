@@ -15,16 +15,26 @@ import {
 export default {
   title: 'Components/Command',
   component: Command,
+  args: {
+    placeholder: 'Search item',
+  },
+  argTypes: {
+    shouldFilter: {
+      control: 'boolean',
+      description: 'Toggle to enable or disable filtering while searching an item',
+    },
+    placeholder: { control: 'text', description: 'The placeholder for the search input.' },
+  },
 } as Meta;
 
 interface CustomCommand {
-  inputPlaceHolder: string;
-  children: React.ReactNode;
+  children: typeof Command;
+  placeholder: string;
 }
 
 const Template: StoryFn<CustomCommand> = (args) => (
-  <Command>
-    <CommandInput placeholder={args.inputPlaceHolder} />
+  <Command {...args}>
+    <CommandInput placeholder={args.placeholder} />
     <CommandList>
       <CommandEmpty>No results found.</CommandEmpty>
       <CommandGroup heading="Suggestions">
@@ -38,6 +48,3 @@ const Template: StoryFn<CustomCommand> = (args) => (
   </Command>
 );
 export const Default = Template.bind({});
-Default.args = {
-  inputPlaceHolder: 'Search section',
-};
