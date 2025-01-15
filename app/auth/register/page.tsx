@@ -10,10 +10,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/component-library/card';
-import LoginForm from './loginForm';
+import LoginForm from './registerForm';
 import Link from 'next/link';
 
-const SignInPage = () => {
+const RegisterPage = () => {
   return (
     <div className="flex justify-center">
       <Card className="w-[350px]">
@@ -25,24 +25,24 @@ const SignInPage = () => {
         </CardContent>
         <CardContent>
           <div>
-            <Link href="/auth/register">Don't have an account yet?</Link>
+            <Link href="/auth/signin">Already have an account?</Link>
           </div>
           <br />
           <Button className="w-full">
             <FcGoogle />
-            Login with Google
+            Register with Google
           </Button>
         </CardContent>
         <CardContent>
           <Button className="w-full">
             <FaFacebook />
-            Login with Facebook
+            Register with Facebook
           </Button>
         </CardContent>
         <CardContent>
           <Button className="w-full">
             <FaApple />
-            Login with Apple
+            Register with Apple
           </Button>
         </CardContent>
       </Card>
@@ -50,4 +50,4 @@ const SignInPage = () => {
   );
 };
 
-export default SignInPage;
+export default RegisterPage;
