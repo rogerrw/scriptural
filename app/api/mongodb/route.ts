@@ -8,7 +8,7 @@ type DatabaseNames = {
   name: string;
 };
 
-async function fetchVerse(
+async function fetchVerseTranslations(
   bookName: string,
   chapterNum: number,
   verseNum: number,
@@ -25,19 +25,24 @@ async function fetchVerse(
     // check if collection exist
     const db = await client.db(process.env.MONGO_DATABASE);
     const verseObj = await db.collection(bookName).findOne({
-      id: `${bookName}_${chapterNum}`,
       verses: { $elemMatch: { id: `${bookName}_${chapterNum}_${verseNum}` } },
     });
-    const verseText = verseObj.verses[verseNum];
+    if (!verseObj) {
+      return;
+    }
+    const verseTranslations = verseObj.verses[verseNum - 1]; // return all available translations in 0th index
     if (translation) {
+      if (!verseTranslations[translation]) {
+        return;
+      }
       return {
-        id: verseText.id,
-        [translation]: verseText[translation],
+        id: verseTranslations.id,
+        [translation]: verseTranslations[translation],
       };
     }
-    return verseText;
+    return verseTranslations;
   } catch (error) {
-    return `Error with fetching verse: ${error}`;
+    console.error(`Error with fetching verse: ${error}`);
   } finally {
     await client.close();
   }
@@ -48,19 +53,23 @@ async function handler(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const bookName = searchParams.get('book');
     const chapterNum = Number(searchParams.get('chapter'));
-    const verseNum = Number(searchParams.get('verse')) - 1; // 0th index
+    const verseNum = Number(searchParams.get('verse'));
     const translation = searchParams.get('translation');
     if (!bookName || !chapterNum || !verseNum) {
-      return NextResponse.json('Required parameters: book, chapter, verse');
+      return NextResponse.json('Required parameters: book, chapter, verse', { status: 500 });
     }
 
-    const res = await fetchVerse(
+    const res = await fetchVerseTranslations(
       bookName as string,
       chapterNum as number,
       verseNum as number,
       translation as string,
     );
-    return NextResponse.json(res);
+    if (!res) {
+      return NextResponse.json({ error: 'Invalid verse' }, { status: 500 });
+    } else {
+      return NextResponse.json(res, { status: 200 });
+    }
   }
 }
 export { handler as GET, handler as POST };

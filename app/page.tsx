@@ -8,9 +8,22 @@ const HomePage = () => {
   const [translation, setTranslation] = useState<string>('');
   const [fetchedVerse, setFetchedVerse] = useState<string>('');
 
-  function getFetchedVerse() {
-    if (book && chapter && verse && translation) {
-      // TODO fetch verse with server side render
+  async function getFetchedVerse() {
+    if (book && chapter && verse) {
+      var url = `/api/mongodb?book=${book}&chapter=${chapter}&verse=${verse}`;
+      if (translation) {
+        url += `&translation=${translation}`;
+      }
+      try {
+        const res = await fetch(url);
+        if (!res.ok) {
+          setFetchedVerse('Invalid verse');
+          throw new Error('Invalid verse');
+        } else {
+          const result = await res.json();
+          setFetchedVerse(translation ? result[translation] : result['ESV']);
+        }
+      } catch (err) {}
     }
   }
 
@@ -56,13 +69,20 @@ const HomePage = () => {
               }}
             />
           </div>
-          <br />
-          <button onSubmit={getFetchedVerse} className="rounded-md bg-gray-800 p-4 text-white">
+          <button
+            onClick={getFetchedVerse}
+            disabled={!book || !chapter || !verse ? true : false}
+            className={
+              !book || !chapter || !verse
+                ? 'mt-5 rounded-md bg-gray-300 p-4 text-white'
+                : 'mt-5 rounded-md bg-blue-500 p-4 text-white'
+            }
+          >
             Submit
           </button>
         </div>
       </div>
-      <p>{fetchedVerse}</p>
+      <p className="p-2">{fetchedVerse}</p>
     </div>
   );
 };
