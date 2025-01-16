@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-const { MongoClient } = require('mongodb');
 require('dotenv').config();
-
-const client = new MongoClient(process.env.MONGO_URL);
+import clientPromise from '@/lib/mongodb';
 
 type DatabaseNames = {
   name: string;
@@ -15,15 +13,15 @@ async function fetchVerseTranslations(
   translation: string,
 ) {
   try {
-    await client.connect();
+    const client = await clientPromise;
+    const db = await client.db(process.env.MONGODB_DATABASE);
     const { databases } = await client.db().admin().listDatabases({ nameOnly: true });
-    const dbExist = databases.some((db: DatabaseNames) => db.name === process.env.MONGO_DATABASE);
+    const dbExist = databases.some((db: DatabaseNames) => db.name === process.env.MONGODB_DATABASE);
     if (!dbExist) {
-      return `Database '${process.env.MONGO_DATABASE}' does not exist`;
+      return `Database '${process.env.MONGODB_DATABASE}' does not exist`;
     }
 
     // check if collection exist
-    const db = await client.db(process.env.MONGO_DATABASE);
     const verseObj = await db.collection(bookName).findOne({
       verses: { $elemMatch: { id: `${bookName}_${chapterNum}_${verseNum}` } },
     });
@@ -44,7 +42,7 @@ async function fetchVerseTranslations(
   } catch (error) {
     console.error(`Error with fetching verse: ${error}`);
   } finally {
-    await client.close();
+    // await clientPromise.close();
   }
 }
 
