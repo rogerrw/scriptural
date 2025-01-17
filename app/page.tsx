@@ -8,9 +8,9 @@ const HomePage = () => {
   const [translation, setTranslation] = useState<string>('');
   const [fetchedVerse, setFetchedVerse] = useState<string>('');
 
-  async function getFetchedVerse() {
+  async function fetchVerse() {
     if (book && chapter && verse) {
-      var url = `/api/fetch_verse?book=${book}&chapter=${chapter}&verse=${verse}`;
+      let url = `/api/fetch_verse?book=${book}&chapter=${chapter}&verse=${verse}`;
       if (translation) {
         url += `&translation=${translation}`;
       }
@@ -70,7 +70,7 @@ const HomePage = () => {
             />
           </div>
           <button
-            onClick={getFetchedVerse}
+            onClick={fetchVerse}
             disabled={!book || !chapter || !verse ? true : false}
             className={
               !book || !chapter || !verse
