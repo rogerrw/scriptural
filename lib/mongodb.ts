@@ -8,21 +8,18 @@ const url = process.env.MONGODB_URL;
 const options = {};
 
 let client: MongoClient;
-let clientPromise: Promise<MongoClient>;
 
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'development') {
   let globalWithMongo = global as typeof globalThis & {
-    _mongoClientPromise?: Promise<MongoClient>;
+    _mongoClient?: MongoClient;
   };
 
-  if (!globalWithMongo._mongoClientPromise) {
-    client = new MongoClient(url, options);
-    globalWithMongo._mongoClientPromise = client.connect();
+  if (!globalWithMongo._mongoClient) {
+    globalWithMongo._mongoClient = new MongoClient(url, options);
   }
-  clientPromise = globalWithMongo._mongoClientPromise;
+  client = globalWithMongo._mongoClient;
 } else {
   client = new MongoClient(url, options);
-  clientPromise = client.connect();
 }
 
-export default clientPromise;
+export default client;

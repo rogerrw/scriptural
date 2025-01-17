@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 require('dotenv').config();
-import clientPromise from '@/lib/mongodb';
+import client from '@/lib/mongodb';
 
 type DatabaseNames = {
   name: string;
@@ -12,9 +12,8 @@ async function fetchVerseTranslations(
   verseNum: number,
   translation: string,
 ) {
-  const client = await clientPromise;
-
   try {
+    await client.connect();
     const db = await client.db(process.env.MONGODB_DATABASE);
     const { databases } = await db.admin().listDatabases({ nameOnly: true });
     const dbExist = databases.some((db: DatabaseNames) => db.name === process.env.MONGODB_DATABASE);
