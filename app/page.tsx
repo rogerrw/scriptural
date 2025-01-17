@@ -10,7 +10,7 @@ const HomePage = () => {
 
   async function getFetchedVerse() {
     if (book && chapter && verse) {
-      var url = `/api/mongodb?book=${book}&chapter=${chapter}&verse=${verse}`;
+      var url = `/api/fetch_verse?book=${book}&chapter=${chapter}&verse=${verse}`;
       if (translation) {
         url += `&translation=${translation}`;
       }

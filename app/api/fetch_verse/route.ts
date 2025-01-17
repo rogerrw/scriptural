@@ -12,10 +12,11 @@ async function fetchVerseTranslations(
   verseNum: number,
   translation: string,
 ) {
+  const client = await clientPromise;
+
   try {
-    const client = await clientPromise;
     const db = await client.db(process.env.MONGODB_DATABASE);
-    const { databases } = await client.db().admin().listDatabases({ nameOnly: true });
+    const { databases } = await db.admin().listDatabases({ nameOnly: true });
     const dbExist = databases.some((db: DatabaseNames) => db.name === process.env.MONGODB_DATABASE);
     if (!dbExist) {
       return `Database '${process.env.MONGODB_DATABASE}' does not exist`;
@@ -42,7 +43,7 @@ async function fetchVerseTranslations(
   } catch (error) {
     console.error(`Error with fetching verse: ${error}`);
   } finally {
-    // await clientPromise.close();
+    await client.close();
   }
 }
 

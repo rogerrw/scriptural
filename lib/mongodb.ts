@@ -10,7 +10,6 @@ const options = {};
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
 
-console.log(url);
 if (process.env.NODE_ENV === 'production') {
   let globalWithMongo = global as typeof globalThis & {
     _mongoClientPromise?: Promise<MongoClient>;
