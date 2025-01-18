@@ -28,13 +28,15 @@ interface LetterProps {
 
 const Letter = ({ referenceChar, typedChar, wordIndex, currentWordIndex }: LetterProps) => {
   if (typedChar) {
-    if (referenceChar && typedChar === referenceChar) {
-      return <div className="text-white">{typedChar}</div>;
-    }
-    if (referenceChar && typedChar !== referenceChar) {
-      return <div className="text-red-400 line-through">{typedChar}</div>;
-    }
-    if (!referenceChar) {
+    if (referenceChar) {
+      if (typedChar.toLowerCase() === referenceChar.toLowerCase()) {
+        return <div className="text-white">{typedChar}</div>;
+      }
+      if (typedChar.toLowerCase() !== referenceChar.toLowerCase()) {
+        return <div className="text-red-400 line-through">{typedChar}</div>;
+      }
+    } else {
+      // No reference char means the user typed extraneous letters
       return <div className="text-red-400 line-through opacity-50">{typedChar}</div>;
     }
   } else {
@@ -116,7 +118,7 @@ const VerseTyper = ({ verseText, difficulty = 0 }: VerseTyperProps) => {
     return (
       <div
         id="verse-display"
-        className="mx-32 flex flex-wrap gap-8 font-mono text-4xl"
+        className="flex flex-wrap gap-8 font-mono text-4xl"
         onClick={() => {
           inputRef.current?.focus();
         }}
@@ -137,7 +139,7 @@ const VerseTyper = ({ verseText, difficulty = 0 }: VerseTyperProps) => {
   };
 
   return (
-    <div>
+    <div className="mx-32 flex-grow justify-center">
       {renderText()}
       <Input
         ref={inputRef}
