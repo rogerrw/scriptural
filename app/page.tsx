@@ -33,7 +33,7 @@ const HomePage = () => {
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="fadein flex flex-col">
       <div id="fetch-verse-form" className="flex justify-center gap-4">
         <div>
           <Label>Book</Label>

@@ -15,7 +15,7 @@ import Link from 'next/link';
 
 const RegisterPage = () => {
   return (
-    <div className="flex justify-center">
+    <div className="fadein flex justify-center">
       <Card className="w-[350px]">
         <CardHeader>
           <CardTitle>Log in to your account</CardTitle>
