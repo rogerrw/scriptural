@@ -1,14 +1,14 @@
 import '@/app/ui/global.css';
-import Header from './ui/components/header';
-import Footer from './ui/components/footer';
+import Header from './header';
+import Footer from './footer';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body data-mode="dark" className={`antialiased`}>
-        <div id="app-container" className="grid h-lvh min-h-full gap-8 bg-background py-8">
+    <html lang="en" className="dark">
+      <body data-mode="dark" className={`dark antialiased`}>
+        <div id="app-container" className="flex min-h-full flex-col gap-8 bg-background">
           <Header />
-          <div id="app-body-container" className="grid">
+          <div id="app-body-container" className="h-full flex-grow">
             {children}
           </div>
           <Footer />
