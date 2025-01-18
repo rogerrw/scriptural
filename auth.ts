@@ -10,6 +10,21 @@ export const {
   signIn,
   signOut,
 } = NextAuth({
+  callbacks: {
+    async session({ token, session }) {
+      if (session.user && token.sub) {
+        session.user.id = token.sub;
+      }
+      console.log('sessionToken:', token);
+      console.log('session :', session);
+      return session;
+    },
+    async jwt({ token }) {
+      console.log(token);
+      // await prisma.user.findUnique();
+      return token;
+    },
+  },
   adapter: PrismaAdapter(prisma),
   session: { strategy: 'jwt' },
   ...authConfig,
