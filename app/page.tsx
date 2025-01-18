@@ -1,4 +1,7 @@
 'use client';
+import { Button } from '@/component-library/button';
+import { Input } from '@/component-library/input';
+import { Label } from '@/component-library/label';
 import React, { useState } from 'react';
 
 const HomePage = () => {
@@ -28,59 +31,47 @@ const HomePage = () => {
   }
 
   return (
-    <div className="">
-      <h1>HomePage</h1>
-      <div className="mx-2">
-        <h2>Fetch a verse!</h2>
-        <div id="fetch-verse-form" className="mx-2">
-          <div>
-            <h5>Book</h5>
-            <input
-              value={book}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                setBook(e.target.value);
-              }}
-            />
-          </div>
-          <div>
-            <h5>Chapter</h5>
-            <input
-              value={chapter}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                setChapter(e.target.value);
-              }}
-            />
-          </div>{' '}
-          <div>
-            <h5>Verse</h5>
-            <input
-              value={verse}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                setVerse(e.target.value);
-              }}
-            />
-          </div>{' '}
-          <div>
-            <h5>Translation</h5>
-            <input
-              value={translation}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                setTranslation(e.target.value);
-              }}
-            />
-          </div>
-          <button
-            onClick={fetchVerse}
-            disabled={!book || !chapter || !verse ? true : false}
-            className={
-              !book || !chapter || !verse
-                ? 'mt-5 rounded-md bg-gray-300 p-4 text-white'
-                : 'mt-5 rounded-md bg-blue-500 p-4 text-white'
-            }
-          >
-            Submit
-          </button>
+    <div className="flex flex-col">
+      <div id="fetch-verse-form" className="flex justify-center gap-4">
+        <div>
+          <Label>Book</Label>
+          <Input
+            value={book}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              setBook(e.target.value);
+            }}
+          />
         </div>
+        <div>
+          <Label>Chapter</Label>
+          <Input
+            value={chapter}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              setChapter(e.target.value);
+            }}
+          />
+        </div>
+        <div>
+          <Label>Verse</Label>
+          <Input
+            value={verse}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              setVerse(e.target.value);
+            }}
+          />
+        </div>
+        <div>
+          <Label>Translation</Label>
+          <Input
+            value={translation}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              setTranslation(e.target.value);
+            }}
+          />
+        </div>
+        <Button className="self-end" onClick={fetchVerse} disabled={!book || !chapter || !verse}>
+          Submit
+        </Button>
       </div>
       <p className="p-2">{fetchedVerse}</p>
     </div>
