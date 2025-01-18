@@ -1,5 +1,5 @@
 'use client';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { Input } from '../input';
 
 interface VerseTyperProps {
@@ -12,26 +12,40 @@ interface VerseTyperProps {
 
 interface WordProps {
   referenceWord: string;
-  typedWord: string;
+  typedWord?: string;
   validationMethod?: 'alphanumeric' | 'exact' | 'first letter';
+  wordIndex: number;
+  currentWordIndex: number;
+  currentLetterIndex: number;
 }
 interface LetterProps {
-  typedChar: string;
   referenceChar: string;
+  typedChar?: string;
+  wordIndex: number;
+  currentWordIndex: number;
+  letterIndex: number;
 }
 
-const Letter = ({ referenceChar, typedChar }: LetterProps) => {
-  if (!typedChar?.length) {
-    return <div className="text-slate-600">{referenceChar}</div>;
+const Letter = ({ referenceChar, typedChar, wordIndex, currentWordIndex }: LetterProps) => {
+  if (typedChar) {
+    if (referenceChar && typedChar === referenceChar) {
+      return <div className="text-white">{typedChar}</div>;
+    }
+    if (referenceChar && typedChar !== referenceChar) {
+      return <div className="text-red-400 line-through">{typedChar}</div>;
+    }
+    if (!referenceChar) {
+      return <div className="text-red-400 line-through opacity-50">{typedChar}</div>;
+    }
+  } else {
+    if (wordIndex < currentWordIndex && referenceChar) {
+      return <div className="text-red-400 opacity-50">{referenceChar}</div>;
+    }
+    return <div className="opacity-50">{referenceChar}</div>;
   }
-
-  if (typedChar.toLowerCase() !== referenceChar.toLowerCase()) {
-    return <div className="text-red-400 line-through">{typedChar}</div>;
-  }
-  return <div className="text-white">{typedChar}</div>;
 };
 
-const Word = ({ referenceWord, typedWord, validationMethod = 'alphanumeric' }: WordProps) => {
+const Word = ({ referenceWord, wordIndex, typedWord = '', currentWordIndex }: WordProps) => {
   // TODO: Add different regex matchers for various verse typing validations
   // - alphanumeric only (default)
   // - exact (included)
@@ -40,18 +54,55 @@ const Word = ({ referenceWord, typedWord, validationMethod = 'alphanumeric' }: W
   const alphanumericValidator = /s/i; // generate the validator based on the typedWord
   // check if the validator matches the referenceWord. If it does not, render the word in error color
 
-  return (
-    <div className="flex">
-      {referenceWord.split('').map((char, index) => {
-        return <Letter typedChar={typedWord?.[index]} referenceChar={char} />;
-      })}
-    </div>
-  );
+  const renderLetters = () => {
+    if (typedWord.length >= referenceWord.length) {
+      return typedWord.split('').map((typedChar, index) => {
+        return (
+          <Letter
+            typedChar={typedChar}
+            referenceChar={referenceWord?.[index]}
+            letterIndex={index}
+            wordIndex={wordIndex}
+            currentWordIndex={currentWordIndex}
+          />
+        );
+      });
+    }
+
+    return referenceWord.split('').map((referenceChar, index) => {
+      return (
+        <Letter
+          typedChar={typedWord?.[index]}
+          referenceChar={referenceChar}
+          letterIndex={index}
+          wordIndex={wordIndex}
+          currentWordIndex={currentWordIndex}
+        />
+      );
+    });
+  };
+
+  return <div className="flex">{renderLetters()}</div>;
 };
 
 const VerseTyper = ({ verseText, difficulty = 0 }: VerseTyperProps) => {
   const [typedText, setTypedText] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const currentWordIndex = useMemo(() => {
+    return typedText.split(' ').length - 1;
+  }, [typedText]);
+
+  const currentLetterIndex = useMemo(() => {
+    const typedTextArray = typedText.split(' ');
+    const currentWord = typedTextArray.length ? typedTextArray[typedTextArray.length - 1] : '';
+    return currentWord.length - 1;
+  }, [typedText]);
+
+  /* Reset the input if the reference verse changes */
+  useEffect(() => {
+    setTypedText('');
+  }, [verseText]);
 
   const verseWords = verseText.split(' ');
   const typedWords = typedText.split(' ');
@@ -63,7 +114,6 @@ const VerseTyper = ({ verseText, difficulty = 0 }: VerseTyperProps) => {
 
   const renderText = () => {
     return (
-      // Add onfocus and onblur handlers for this div to focus/blur the hidden text input
       <div
         id="verse-display"
         className="mx-32 flex flex-wrap gap-8 font-mono text-4xl"
@@ -72,7 +122,15 @@ const VerseTyper = ({ verseText, difficulty = 0 }: VerseTyperProps) => {
         }}
       >
         {verseWords.map((word, index) => {
-          return <Word referenceWord={word} typedWord={typedText.split(' ')?.[index]} />;
+          return (
+            <Word
+              referenceWord={word}
+              typedWord={typedWords?.[index]}
+              wordIndex={index}
+              currentWordIndex={currentWordIndex}
+              currentLetterIndex={currentLetterIndex}
+            />
+          );
         })}
       </div>
     );
@@ -84,6 +142,18 @@ const VerseTyper = ({ verseText, difficulty = 0 }: VerseTyperProps) => {
       <Input
         ref={inputRef}
         autoFocus
+        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+          switch (e.key) {
+            case 'ArrowRight':
+            case 'ArrowLeft':
+            case 'ArrowUp':
+            case 'ArrowDown':
+              e.preventDefault();
+              break;
+            default:
+              break;
+          }
+        }}
         onChange={(e) => {
           const newlyTypedText = e.target.value;
           setTypedText(newlyTypedText);
