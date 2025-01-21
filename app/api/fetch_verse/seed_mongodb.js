@@ -6,7 +6,7 @@ require('dotenv').config();
 
 const client = new MongoClient(process.env.MONGO_URL);
 
-export const booksMapping = {
+const booksMapping = {
   '1CH': '1 Chronicles',
   '1CO': '1 Corinthians',
   '1JN': '1 John',
