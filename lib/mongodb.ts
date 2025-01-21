@@ -1,25 +1,50 @@
-import { MongoClient } from 'mongodb';
+import mongoose from 'mongoose';
 require('dotenv').config();
-if (!process.env.MONGODB_URL) {
-  throw new Error('Invalid/Missing environment variable: "MONGODB_URL"');
+
+declare global {
+  var mongoose: any; // This must be a `var` and not a `let / const`
 }
 
-const url = process.env.MONGODB_URL;
-const options = {};
+let cached = global.mongoose;
 
-let client: MongoClient;
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
 
-if (process.env.NODE_ENV === 'development') {
-  let globalWithMongo = global as typeof globalThis & {
-    _mongoClient?: MongoClient;
-  };
-
-  if (!globalWithMongo._mongoClient) {
-    globalWithMongo._mongoClient = new MongoClient(url, options);
+async function dbConnect() {
+  const url = process.env.MONGODB_URL;
+  if (!url) {
+    throw new Error('Invalid/Missing environment variable: "MONGODB_URL"');
   }
-  client = globalWithMongo._mongoClient;
-} else {
-  client = new MongoClient(url, options);
+
+  const db = process.env.MONGODB_DATABASE;
+  console.log(url + db);
+  if (!db) {
+    throw new Error('Invalid/Missing environment variable: "MONGODB_DATABASE"');
+  }
+
+  if (cached.conn) {
+    return cached.conn;
+  }
+  if (cached.conn) {
+    return cached.conn;
+  }
+  if (!cached.promise) {
+    const opts = {
+      bufferCommands: false,
+    };
+    cached.promise = mongoose.connect(url + db, opts).then((mongoose) => {
+      return mongoose;
+    });
+  }
+  try {
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null;
+    throw e;
+  }
+
+  return cached.conn;
 }
 
-export default client;
+export default dbConnect;
