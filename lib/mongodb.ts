@@ -18,7 +18,6 @@ async function dbConnect() {
   }
 
   const db = process.env.MONGODB_DATABASE;
-  console.log(url + db);
   if (!db) {
     throw new Error('Invalid/Missing environment variable: "MONGODB_DATABASE"');
   }
