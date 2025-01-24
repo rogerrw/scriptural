@@ -2,6 +2,7 @@
 import { Button } from '@/component-library/button';
 import { Input } from '@/component-library/input';
 import { Label } from '@/component-library/label';
+import VerseTyper from '@/component-library/verseTyper';
 import React, { useState } from 'react';
 
 const HomePage = () => {
@@ -9,7 +10,9 @@ const HomePage = () => {
   const [chapter, setChapter] = useState<string>('');
   const [verse, setVerse] = useState<string>('');
   const [translation, setTranslation] = useState<string>('');
-  const [fetchedVerse, setFetchedVerse] = useState<string>('');
+  const [fetchedVerse, setFetchedVerse] = useState<string>(
+    'Your word is a lamp to my feet and a light to my path.',
+  );
 
   async function fetchVerse() {
     if (book && chapter && verse) {
@@ -20,18 +23,17 @@ const HomePage = () => {
       try {
         const res = await fetch(url);
         if (!res.ok) {
-          setFetchedVerse('Invalid verse');
           throw new Error('Invalid verse');
-        } else {
-          const result = await res.json();
-          setFetchedVerse(translation ? result[translation] : result['ESV']);
         }
+
+        const result = await res.json();
+        setFetchedVerse(translation ? result[translation] : result['ESV']);
       } catch (err) {}
     }
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="fadein flex flex-col">
       <div id="fetch-verse-form" className="flex justify-center gap-4">
         <div>
           <Label>Book</Label>
@@ -73,7 +75,7 @@ const HomePage = () => {
           Submit
         </Button>
       </div>
-      <p className="p-2">{fetchedVerse}</p>
+      <VerseTyper verseText={fetchedVerse} />
     </div>
   );
 };
