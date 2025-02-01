@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 require('dotenv').config();
-import client from '@/lib/mongodb';
-
-type DatabaseNames = {
-  name: string;
-};
+import mongoose from 'mongoose';
+import dbConnect from '@/lib/mongodb';
+import { Books, Verse } from '@/model/Book.schema';
+import BookSchema from '@/model/Book.schema';
 
 async function fetchVerseTranslations(
   bookName: string,
@@ -13,36 +12,27 @@ async function fetchVerseTranslations(
   translation: string,
 ) {
   try {
-    await client.connect();
-    const db = await client.db(process.env.MONGODB_DATABASE);
-    const { databases } = await db.admin().listDatabases({ nameOnly: true });
-    const dbExist = databases.some((db: DatabaseNames) => db.name === process.env.MONGODB_DATABASE);
-    if (!dbExist) {
-      return `Database '${process.env.MONGODB_DATABASE}' does not exist`;
-    }
-
-    // check if collection exist
-    const verseObj = await db.collection(bookName).findOne({
-      verses: { $elemMatch: { id: `${bookName}_${chapterNum}_${verseNum}` } },
-    });
+    await dbConnect();
+    const model = mongoose.model<Books>('Book', BookSchema, bookName);
+    const verseObj = await model.findOne(
+      { id: `${bookName}_${chapterNum}` },
+      { verses: { $elemMatch: { id: `${bookName}_${chapterNum}_${verseNum}` } } },
+    );
     if (!verseObj) {
       return;
     }
-    const verseTranslations = verseObj.verses[verseNum - 1]; // return all available translations in 0th index
+    const verseTranslations = verseObj.verses[0];
     if (translation) {
-      if (!verseTranslations[translation]) {
-        return;
-      }
       return {
         id: verseTranslations.id,
-        [translation]: verseTranslations[translation],
+        [translation]: verseTranslations[translation as keyof Verse],
       };
     }
     return verseTranslations;
   } catch (error) {
     console.error(`Error with fetching verse: ${error}`);
   } finally {
-    await client.close();
+    delete (mongoose.connection.models as any)['Book'];
   }
 }
 
