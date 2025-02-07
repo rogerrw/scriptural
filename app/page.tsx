@@ -7,15 +7,18 @@ import VerseTyper from '@/component-library/verseTyper';
 import React, { useEffect, useState } from 'react';
 import { UserVerseSchema } from './api/save_verse/schema';
 import { saveVerses } from './api/save_verse/route';
+import { FormError, FormSuccess } from './ui/formMessage';
 const HomePage = () => {
   const [userId, setUserId] = useState<string | undefined>('');
   const session = useSession();
+  const [error, setError] = useState<string | undefined>();
+  const [success, setSuccess] = useState<string | undefined>();
   const [book, setBook] = useState<string>('');
   const [chapter, setChapter] = useState<number>();
   const [verse, setVerse] = useState<number>();
   const [translation, setTranslation] = useState<string>('');
   const [fetchedVerse, setFetchedVerse] = useState<string>(
-    'Your word is a lamp to my feet and a light to my path.',
+    'Your word is a lamp to my feet and a light to my path.', // TODO: fetch random or default verse to save
   );
   async function fetchVerse() {
     if (book && chapter && verse) {
@@ -46,7 +49,9 @@ const HomePage = () => {
       if (!validation.success) {
         console.error(`Validation error: ${validation.error}`);
       } else {
-        saveVerses(validation.data);
+        const res = await saveVerses(validation.data);
+        setSuccess(res?.success);
+        setError(res?.error);
       }
     }
   }
@@ -54,10 +59,12 @@ const HomePage = () => {
     if (session) {
       setUserId(session.data?.user?.id);
     }
-  }, [session]);
+  }, []);
 
   return (
     <div className="fadein flex flex-col items-center">
+      <FormError message={error} />
+      <FormSuccess message={success} />
       <div id="fetch-verse-form" className="flex justify-center gap-4">
         <div>
           <Label>Book</Label>
@@ -99,9 +106,15 @@ const HomePage = () => {
           Submit
         </Button>
       </div>
-      <div className="p-5">
-        <Button onClick={saveVerse}>Save Verse</Button>
-      </div>
+      {userId ? (
+        <div className="p-5">
+          <Button onClick={saveVerse} disabled={!book || !chapter || !verse}>
+            Save Verse
+          </Button>
+        </div>
+      ) : (
+        <></>
+      )}
       <VerseTyper verseText={fetchedVerse} />
     </div>
   );

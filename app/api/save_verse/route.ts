@@ -5,6 +5,20 @@ import { UserVerseSchema } from './schema';
 
 export async function saveVerses(params: z.infer<typeof UserVerseSchema>) {
   const { userId, book, chapter, startingVerse } = params;
+
+  const findFirst = await prisma.userVerse.findFirst({
+    where: {
+      userId,
+      book,
+      chapter,
+      startingVerse,
+    },
+  });
+  if (findFirst) {
+    return {
+      error: 'Already saved this verse',
+    };
+  }
   await prisma.userVerse.create({
     data: {
       userId,
@@ -13,4 +27,8 @@ export async function saveVerses(params: z.infer<typeof UserVerseSchema>) {
       startingVerse,
     },
   });
+
+  return {
+    success: 'Verse saved in collection!',
+  };
 }
