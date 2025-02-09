@@ -5,8 +5,8 @@ import { Input } from '@/component-library/input';
 import { Label } from '@/component-library/label';
 import VerseTyper from '@/component-library/verseTyper';
 import React, { useEffect, useState } from 'react';
-import { UserVerseSchema } from './api/save_verse/schema';
-import { saveVerses } from './api/save_verse/route';
+import { UserVerseSchema } from './schemas/userverse_schema';
+import { saveVerses } from '../actions/save_verse';
 import { FormError, FormSuccess } from './ui/formMessage';
 const HomePage = () => {
   const [userId, setUserId] = useState<string | undefined>('');

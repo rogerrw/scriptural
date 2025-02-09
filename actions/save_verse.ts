@@ -1,7 +1,7 @@
 'use server';
 import prisma from '@/prisma';
 import * as z from 'zod';
-import { UserVerseSchema } from './schema';
+import { UserVerseSchema } from '../app/schemas/userverse_schema';
 
 export async function saveVerses(params: z.infer<typeof UserVerseSchema>) {
   const { userId, book, chapter, startingVerse } = params;
