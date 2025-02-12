@@ -5,7 +5,7 @@ import { Input } from '@/component-library/input';
 import { Label } from '@/component-library/label';
 import VerseTyper from '@/component-library/verseTyper';
 import React, { useEffect, useState } from 'react';
-import { saveVerses } from '../actions/save_verse';
+import { saveVerses } from '../actions/saveVerse';
 import { FormError, FormSuccess } from './ui/formMessage';
 import { UserVerse } from '@prisma/client';
 const HomePage = () => {
