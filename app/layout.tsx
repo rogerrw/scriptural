@@ -9,13 +9,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" className="dark">
       <body data-mode="dark" className={`dark font-mono antialiased`}>
-        <div id="app-container" className="flex max-h-full min-h-full flex-col gap-8 bg-background">
-          <Header />
-          <div id="app-body-container" className="mx-8 flex-grow">
-            <SessionProvider session={session}>{children}</SessionProvider>
+        <SessionProvider session={session}>
+          <div
+            id="app-container"
+            className="flex max-h-full min-h-full flex-col gap-8 bg-background"
+          >
+            <Header />
+            <div id="app-body-container" className="mx-8 flex-grow">
+              {children}
+            </div>
+            <Footer />
           </div>
-          <Footer />
-        </div>
+        </SessionProvider>
       </body>
     </html>
   );
