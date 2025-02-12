@@ -5,9 +5,9 @@ import { Input } from '@/component-library/input';
 import { Label } from '@/component-library/label';
 import VerseTyper from '@/component-library/verseTyper';
 import React, { useEffect, useState } from 'react';
-import { UserVerseSchema } from './schemas/userverse_schema';
 import { saveVerses } from '../actions/save_verse';
 import { FormError, FormSuccess } from './ui/formMessage';
+import { UserVerse } from '@prisma/client';
 const HomePage = () => {
   const [userId, setUserId] = useState<string | undefined>('');
   const session = useSession();
@@ -44,15 +44,10 @@ const HomePage = () => {
         book: book,
         chapter: chapter,
         startingVerse: verse,
-      };
-      const validation = UserVerseSchema.safeParse(values);
-      if (!validation.success) {
-        console.error(`Validation error: ${validation.error}`);
-      } else {
-        const res = await saveVerses(validation.data);
-        setSuccess(res?.success);
-        setError(res?.error);
-      }
+      } as UserVerse;
+      const res = await saveVerses(values);
+      setSuccess(res?.success);
+      setError(res?.error);
     }
   }
   useEffect(() => {
