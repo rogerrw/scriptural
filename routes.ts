@@ -2,7 +2,7 @@
  * Publicly accessible routes
  * @type {string[]}
  */
-export const publicRoutes = ['/'];
+export const publicRoutes = ['/', '/about', '/terms', '/support', '/privacy'];
 
 /**
  * These routes will redirect logged in users to /
