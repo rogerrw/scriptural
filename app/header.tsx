@@ -10,11 +10,7 @@ const Header = async () => {
   console.log(JSON.stringify(session));
 
   const renderLoginButton = () => {
-    return (
-      <Button>
-        <Link href="/auth/signin">Login / Sign Up</Link>
-      </Button>
-    );
+    return <Link href="/auth/signin">Login / Sign Up</Link>;
   };
 
   const renderUserAccount = () => {
@@ -22,7 +18,7 @@ const Header = async () => {
   };
 
   return (
-    <header className="flex justify-between p-8">
+    <header className="fadein flex justify-between p-8">
       <Link href="/">
         <Image src="/sample_logo.png" width={240} height={40} alt="Picture of the author" />
       </Link>

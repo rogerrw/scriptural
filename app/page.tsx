@@ -8,6 +8,7 @@ import React, { useEffect, useState } from 'react';
 import { saveVerses } from '../actions/saveVerse';
 import { FormError, FormSuccess } from './ui/formMessage';
 import { UserVerse } from '@prisma/client';
+
 const HomePage = () => {
   const [userId, setUserId] = useState<string | undefined>('');
   const session = useSession();
