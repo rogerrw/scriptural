@@ -1,9 +1,9 @@
 import { auth, signOut } from '@/auth';
 import { Button } from '@/component-library/button';
-const SettingsPage = async () => {
+const DashboardPage = async () => {
   const session = await auth();
   return (
-    <div>
+    <div className="fadein">
       {`session ${JSON.stringify(session)}`}
 
       <form
@@ -18,4 +18,4 @@ const SettingsPage = async () => {
   );
 };
 
-export default SettingsPage;
+export default DashboardPage;

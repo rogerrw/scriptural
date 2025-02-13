@@ -18,7 +18,7 @@ const RegisterPage = () => {
     <div className="fadein flex justify-center">
       <Card className="w-[350px]">
         <CardHeader>
-          <CardTitle>Log in to your account</CardTitle>
+          <CardTitle>Create a new account</CardTitle>
         </CardHeader>
         <CardContent>
           <LoginForm />
