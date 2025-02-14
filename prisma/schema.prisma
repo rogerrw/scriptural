@@ -85,8 +85,8 @@ model Collection {
 
 model UserCollection {
   id           Int      @id @default(autoincrement())
-  userId       Int
-  collectionId Int
+  userId       String
+  collectionId String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
