@@ -13,17 +13,18 @@ import {
 } from '@/component-library/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/component-library/form';
 import { Input } from '@/component-library/input';
-import { Collection } from '@prisma/client';
 import React, { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { CollectionSchema } from './schema';
 import { useSession } from 'next-auth/react';
+import { FormError, FormSuccess } from '@/app/ui/formMessage';
 
 const CollectionsPage = () => {
   const session = useSession();
   const [error, setError] = useState<string | undefined>();
   const [success, setSuccess] = useState<string | undefined>();
   const [isPending, startTransition] = useTransition();
+  const [open, setOpen] = useState<boolean>(false);
 
   const form = useForm<z.infer<typeof CollectionSchema>>({
     defaultValues: {
@@ -31,20 +32,22 @@ const CollectionsPage = () => {
       name: '',
     },
   });
+  const collectionName = form.watch('name');
+
   const handleSubmit = (values: z.infer<typeof CollectionSchema>) => {
     startTransition(() => {
       addCollection(values).then((data) => {
-        // setError(data?.error);
+        setError(data?.error);
         setSuccess(data?.success);
       });
     });
+    setOpen(false);
   };
-  const [open, setOpen] = useState<boolean>(false);
   const CreateCollection = () => {
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button>Add Collection +</Button>
+          <Button className="mt-4">Add Collection +</Button>
         </DialogTrigger>
 
         <DialogContent>
@@ -70,7 +73,9 @@ const CollectionsPage = () => {
                 />
               </DialogHeader>
               <DialogFooter>
-                <Button type="submit">Submit</Button>
+                <Button type="submit" disabled={!collectionName} className="mt-4">
+                  Submit
+                </Button>
               </DialogFooter>
             </form>
           </Form>
@@ -80,6 +85,8 @@ const CollectionsPage = () => {
   };
   return (
     <div>
+      <FormSuccess message={success} />
+      <FormError message={error} />
       <h1>CollectionsPage</h1>
       {CreateCollection()}
     </div>
