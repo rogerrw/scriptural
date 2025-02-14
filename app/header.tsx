@@ -1,9 +1,10 @@
 import { Button } from '@/component-library/button';
-import React from 'react';
+import { auth } from '@/auth';
 import Link from 'next/link';
 import Image from 'next/image';
 
-const Header = () => {
+const Header = async () => {
+  const session = await auth();
   return (
     <header className="flex justify-between p-8">
       <Link href="/">
@@ -11,7 +12,9 @@ const Header = () => {
       </Link>
       <div>
         <Button>
-          <Link href="/auth/signin">Login / Sign Up</Link>
+          <Link href={session ? '/user' : '/auth/signin'}>
+            {session ? 'Profile' : 'Login / Sign Up'}
+          </Link>
         </Button>
       </div>
     </header>
