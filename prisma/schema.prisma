@@ -89,8 +89,8 @@ model Collection {
 
 model UserCollection {
   id           Int      @id @default(autoincrement())
-  userId       Int
-  collectionId Int
+  userId       String
+  collectionId String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -108,4 +108,16 @@ model CollectionVerse {
   updatedAt    DateTime   @updatedAt
 
   @@map("collection_verses")
+}
+
+model VerificationRequest {
+  id         String   @id @default(cuid())
+  token      String   @unique
+  identifier String
+  expires    DateTime
+  createdAt  DateTime @default(now()) @map(name: "created_at")
+  updatedAt  DateTime @default(now()) @map(name: "updated_at")
+
+  @@unique([identifier, token])
+  @@map("verification_requests")
 }
