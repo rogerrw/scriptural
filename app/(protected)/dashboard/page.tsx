@@ -1,5 +1,6 @@
 import { auth, signOut } from '@/auth';
 import { Button } from '@/component-library/button';
+
 const DashboardPage = async () => {
   const session = await auth();
   return (
