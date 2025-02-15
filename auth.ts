@@ -11,6 +11,10 @@ export const {
   signIn,
   signOut,
 } = NextAuth({
+  pages: {
+    signIn: '/auth/signin',
+    error: '/auth/error',
+  },
   events: {
     async linkAccount({ user }) {
       await prisma.user.update({
@@ -22,19 +26,25 @@ export const {
     },
   },
   callbacks: {
-    // async signIn({ user }) {
-    //   if (!user.id) {
-    //     return false;
-    //   }
+    async signIn({ user, account }) {
+      if (!user.id) {
+        return false;
+      }
 
-    //   const existingUser = await getUserById(user.id);
+      if (account?.provider !== 'credentials') {
+        return true;
+      }
 
-    //   if (!existingUser || !existingUser.emailVerified) {
-    //     return false;
-    //   }
+      const existingUser = await getUserById(user.id);
 
-    //   return true;
-    // },
+      if (!existingUser?.emailVerified) {
+        return false;
+      }
+
+      // TODO: Add 2-factor authentication check
+
+      return true;
+    },
     async session({ token, session }) {
       if (session.user && token.sub) {
         session.user.id = token.sub;
