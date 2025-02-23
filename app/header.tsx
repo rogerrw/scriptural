@@ -7,8 +7,6 @@ import Image from 'next/image';
 
 const Header = async () => {
   const session = await auth();
-  console.log(JSON.stringify(session));
-
   const renderLoginButton = () => {
     return <Link href="/auth/signin">Login / Sign Up</Link>;
   };
