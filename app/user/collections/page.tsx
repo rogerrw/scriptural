@@ -1,6 +1,6 @@
 'use client';
 import * as z from 'zod';
-import { addCollection } from '@/actions/addCollection';
+import { createCollection } from '@/actions/createCollection';
 import { Button } from '@/component-library/button';
 import {
   Dialog,
@@ -36,7 +36,7 @@ const CollectionsPage = () => {
 
   const handleSubmit = (values: z.infer<typeof CollectionSchema>) => {
     startTransition(() => {
-      addCollection(values).then((data) => {
+      createCollection(values).then((data) => {
         setError(data?.error);
         setSuccess(data?.success);
       });

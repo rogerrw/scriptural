@@ -4,7 +4,7 @@ import prisma from '@/prisma';
 import { UserCollection } from '@prisma/client';
 import { CollectionSchema } from '@/app/user/collections/schema';
 
-export async function addCollection(params: z.infer<typeof CollectionSchema>) {
+export async function createCollection(params: z.infer<typeof CollectionSchema>) {
   const { userId, name } = params;
   const collectionId = await prisma.collection.create({
     data: {
