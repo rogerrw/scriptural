@@ -23,7 +23,7 @@ export async function createCollection(params: z.infer<typeof CollectionSchema>)
 
   const userCollection: UserCollection = await prisma.userCollection.create({
     data: {
-      userId,
+      userId: userId,
       collectionId: collectionId.id,
     },
   });
