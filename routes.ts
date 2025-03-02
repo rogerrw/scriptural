@@ -2,13 +2,13 @@
  * Publicly accessible routes
  * @type {string[]}
  */
-export const publicRoutes = ['/'];
+export const publicRoutes = ['/', '/about', '/terms', '/support', '/privacy'];
 
 /**
  * These routes will redirect logged in users to /
  * @type {string[]}
  */
-export const authRoutes = ['/auth/signin', '/auth/register'];
+export const authRoutes = ['/auth/signin', '/auth/register', '/auth/error'];
 
 /**
  * Routes that start with this prefix are used for API authentication purposes
@@ -16,4 +16,4 @@ export const authRoutes = ['/auth/signin', '/auth/register'];
  */
 export const apiAuthPrefix = '/api/auth';
 
-export const DEFAULT_LOGIN_REDIRECT = '/settings';
+export const DEFAULT_LOGIN_REDIRECT = '/dashboard';

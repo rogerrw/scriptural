@@ -3,6 +3,8 @@ import * as z from 'zod';
 import bcrypt from 'bcryptjs';
 import prisma from '@/prisma';
 import { RegisterSchema } from '@/app/auth/register/schema';
+import { getUserByEmail } from '@/data/user';
+import { generateVerificationToken } from '@/lib/tokens';
 
 export const register = async (values: z.infer<typeof RegisterSchema>) => {
   const validatedFields = RegisterSchema.safeParse(values);
@@ -15,11 +17,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  const existingEmail = await prisma.user.findUnique({
-    where: {
-      email,
-    },
-  });
+  const existingEmail = await getUserByEmail(email);
 
   if (existingEmail) {
     return {
@@ -35,8 +33,10 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
     },
   });
 
+  const verificationRequest = await generateVerificationToken(email);
   // TODO: Send verification email
+
   return {
-    success: 'Account  created!',
+    success: 'Confirmation email sent!',
   };
 };
