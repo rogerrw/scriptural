@@ -1,5 +1,6 @@
 import { auth, signOut } from '@/auth';
 import { Button } from '@/component-library/button';
+import Link from 'next/link';
 
 const DashboardPage = async () => {
   const session = await auth();
@@ -13,6 +14,9 @@ const DashboardPage = async () => {
           await signOut();
         }}
       >
+        <Button className="gap-2">
+          <Link href="/user">User</Link>
+        </Button>
         <Button type="submit">Log out</Button>
       </form>
     </div>
