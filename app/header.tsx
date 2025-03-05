@@ -1,7 +1,5 @@
-import { auth } from '@/auth';
-
 import { Button } from '@/component-library/button';
-import React from 'react';
+import { auth } from '@/auth';
 import Link from 'next/link';
 import Image from 'next/image';
 
