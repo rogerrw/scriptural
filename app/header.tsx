@@ -1,33 +1,49 @@
 import { Button } from '@/component-library/button';
-import { auth, signOut } from '@/auth';
+import { auth } from '@/auth';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Calendar1Icon, ListIcon, LogOutIcon, SearchIcon, UserIcon } from 'lucide-react';
+import {
+  Calendar1Icon,
+  ChevronDownIcon,
+  ListIcon,
+  LogOutIcon,
+  SearchIcon,
+  UserIcon,
+} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
 } from '@/component-library/dropdown-menu';
 import { DropdownMenuTrigger } from '@/component-library/dropdown-menu';
 
 const Header = async () => {
   const session = await auth();
-  const renderLoginButton = () => {
-    return (
-      <Button asChild className="bg-white text-black">
-        <Link href="/auth/signin">Login / Sign Up</Link>
-      </Button>
-    );
-  };
 
-  const renderUserAccount = () => {
-    return (
+  const renderPrivateHeaderActions = () => (
+    <>
+      <Button asChild>
+        <Link href="/review" className="flex items-center gap-2">
+          <Calendar1Icon className="h-4 w-4" />
+          Daily Review
+        </Link>
+      </Button>
+      <Button asChild variant="ghost">
+        <Link href="/search" className="flex items-center gap-2">
+          <SearchIcon className="h-4 w-4" />
+        </Link>
+      </Button>
+      <Button asChild variant="ghost">
+        <Link href="/verse_sets" className="flex items-center gap-2">
+          <ListIcon className="h-4 w-4" />
+        </Link>
+      </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost">
+          <Button variant="link">
             <UserIcon className="h-4 w-4" />
+            <ChevronDownIcon className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
@@ -36,15 +52,23 @@ const Header = async () => {
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
-            <>
-              <LogOutIcon />
-              <Link href="/auth/logout">Logout</Link>
-            </>
+            <div className="flex items-center gap-2">
+              <LogOutIcon className="h-4 w-4 text-red-500" />
+              <Link className="text-red-500" href="/auth/logout">
+                Logout
+              </Link>
+            </div>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-    );
-  };
+    </>
+  );
+
+  const renderPublicHeaderActions = () => (
+    <Button asChild className="bg-white text-black">
+      <Link href="/auth/signin">Login / Sign Up</Link>
+    </Button>
+  );
 
   return (
     <header className="fadein mx-8 flex items-center justify-between p-8">
@@ -52,23 +76,7 @@ const Header = async () => {
         <Image src="/sample_logo.png" width={240} height={40} alt="Picture of the author" />
       </Link>
       <div className="flex items-center gap-2">
-        <Button asChild>
-          <Link href="/review" className="flex items-center gap-2">
-            <Calendar1Icon className="h-4 w-4" />
-            Daily Review
-          </Link>
-        </Button>
-        <Button asChild variant="ghost">
-          <Link href="/search" className="flex items-center gap-2">
-            <SearchIcon className="h-4 w-4" />
-          </Link>
-        </Button>
-        <Button asChild variant="ghost">
-          <Link href="/verse_sets" className="flex items-center gap-2">
-            <ListIcon className="h-4 w-4" />
-          </Link>
-        </Button>
-        {!!session ? renderUserAccount() : renderLoginButton()}
+        {!!session ? renderPrivateHeaderActions() : renderPublicHeaderActions()}
       </div>
     </header>
   );
