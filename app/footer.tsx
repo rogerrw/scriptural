@@ -16,7 +16,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="fadein flex gap-8 px-8 py-2">
+    <footer className="fadein mx-8 flex gap-8 px-8 py-2">
       {renderFooterLink('/about', 'About')}
       {renderFooterLink('/support', 'Support')}
       {renderFooterLink('/terms', 'Terms')}
