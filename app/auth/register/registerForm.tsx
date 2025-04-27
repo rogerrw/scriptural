@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import { register } from '@/actions/register';
+import { register } from '@/actions/auth/register';
 
 import { RegisterSchema } from './schema';
 import {

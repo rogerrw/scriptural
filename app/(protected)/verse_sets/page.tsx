@@ -8,6 +8,10 @@ import { PlusIcon } from 'lucide-react';
 const VerseSetsPage = () => {
   const sampleVerseSets = [
     {
+      id: 0,
+      name: 'All Verses',
+    },
+    {
       id: 1,
       name: 'Verse Set 1',
     },

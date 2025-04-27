@@ -1,7 +1,5 @@
-import { Button } from '@/component-library/button';
-import { auth } from '@/auth';
-import Link from 'next/link';
-import Image from 'next/image';
+'use client';
+
 import {
   Calendar1Icon,
   ChevronDownIcon,
@@ -10,18 +8,25 @@ import {
   SearchIcon,
   UserIcon,
 } from 'lucide-react';
+import Link from 'next/link';
+
+import { logout } from '@/actions/auth';
+
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/component-library/dropdown-menu';
+import { Button } from '@/component-library/button';
 import { DropdownMenuTrigger } from '@/component-library/dropdown-menu';
+import { useTransition } from 'react';
 
-const Header = async () => {
-  const session = await auth();
+const PrivateHeaderActions = () => {
+  'use client';
+  const [isPending, startTransition] = useTransition();
 
-  const renderPrivateHeaderActions = () => (
+  return (
     <>
       <Button asChild>
         <Link href="/review" className="flex items-center gap-2">
@@ -54,7 +59,7 @@ const Header = async () => {
           <DropdownMenuItem asChild>
             <div className="flex items-center gap-2">
               <LogOutIcon className="h-4 w-4 text-red-500" />
-              <Link className="text-red-500" href="/auth/logout">
+              <Link className="text-red-500" href="/" onClick={() => startTransition(logout)}>
                 Logout
               </Link>
             </div>
@@ -63,23 +68,6 @@ const Header = async () => {
       </DropdownMenu>
     </>
   );
-
-  const renderPublicHeaderActions = () => (
-    <Button asChild className="bg-white text-black">
-      <Link href="/auth/signin">Login / Sign Up</Link>
-    </Button>
-  );
-
-  return (
-    <header className="fadein mx-8 flex items-center justify-between p-8">
-      <Link href="/">
-        <Image src="/sample_logo.png" width={240} height={40} alt="Picture of the author" />
-      </Link>
-      <div className="flex items-center gap-2">
-        {!!session ? renderPrivateHeaderActions() : renderPublicHeaderActions()}
-      </div>
-    </header>
-  );
 };
 
-export default Header;
+export default PrivateHeaderActions;

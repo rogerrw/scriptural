@@ -1,6 +1,6 @@
 import '@/app/ui/global.css';
 import { SessionProvider } from 'next-auth/react';
-import Header from './header';
+import Header from '@/app/header';
 import Footer from './footer';
 import { auth } from '@/auth';
 
@@ -8,7 +8,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const session = await auth();
   return (
     <html lang="en" className="dark">
-      <body data-mode="dark" className={`dark font-mono antialiased`}>
+      <body data-mode="dark" className="dark font-mono antialiased">
         <SessionProvider session={session}>
           <div
             id="app-container"
