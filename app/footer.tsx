@@ -7,7 +7,7 @@ const Footer = () => {
   const currentPath = usePathname();
 
   const renderFooterLink = (path: string, label: string) => {
-    const linkStyles = `hover:opacity-100 ${path === currentPath ? 'opacity-100' : 'opacity-50'}`;
+    const linkStyles = `hover:opacity-100 ${path === currentPath ? 'opacity-100' : 'opacity-50'} transition-opacity`;
     return (
       <Link className={linkStyles} href={path}>
         {label}
