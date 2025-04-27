@@ -6,6 +6,7 @@ import {
   ListIcon,
   LogOutIcon,
   SearchIcon,
+  SettingsIcon,
   UserIcon,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -80,16 +81,21 @@ const PrivateHeaderActions = () => {
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem>
-            <Link href="/dashboard">Account</Link>
+            <Link href="/dashboard" className="flex w-full cursor-pointer items-center gap-2">
+              <SettingsIcon />
+              Account settings
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem asChild>
-            <div className="flex items-center gap-2">
-              <LogOutIcon className="h-4 w-4 text-red-400" />
-              <Link className="text-red-400" href="/" onClick={() => startTransition(logout)}>
-                Logout
-              </Link>
-            </div>
+          <DropdownMenuItem>
+            <Link
+              className="flex w-full cursor-pointer items-center gap-2 text-red-400"
+              href="/"
+              onClick={() => startTransition(logout)}
+            >
+              <LogOutIcon className="h-4 w-4" />
+              Logout
+            </Link>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
