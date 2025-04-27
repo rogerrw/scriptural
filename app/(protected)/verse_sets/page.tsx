@@ -28,16 +28,16 @@ const VerseSetsPage = () => {
   return (
     <div className="fadein flex flex-row gap-4">
       <Card className="h-full w-80 max-w-80">
-        <div className="flex items-center justify-between bg-gray-800 p-4">
+        <div className="flex items-center justify-between rounded-t-sm bg-gray-700 p-4">
           <span className="ml-2 font-bold text-gray-900 dark:text-gray-300">Verse Sets</span>
           <Button
             variant="ghost"
-            className="text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700"
+            className="text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-600"
           >
             <PlusIcon className="h-4 w-4" />
           </Button>
         </div>
-        <ScrollArea className="h-full w-full p-2">
+        <ScrollArea className="h-full w-full bg-gray-800 p-2">
           {sampleVerseSets.map((verseSet, index) => (
             <React.Fragment key={verseSet.id}>
               <Button
