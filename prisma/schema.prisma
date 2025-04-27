@@ -77,37 +77,37 @@ model UserVerseReview {
   @@map("user_verse_reviews")
 }
 
-model Collection {
-  id               String            @id @default(cuid())
-  name             String
-  collectionVerses CollectionVerse[]
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+model VerseSet {
+  id        String          @id @default(cuid())
+  name      String
+  verses    VerseSetVerse[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
 
-  @@map("collections")
+  @@map("verse_sets")
 }
 
-model UserCollection {
-  id           Int      @id @default(autoincrement())
-  userId       String
-  collectionId String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+model UserVerseSet {
+  id         Int      @id @default(autoincrement())
+  userId     String
+  verseSetId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  @@map("user_collections")
+  @@map("user_verse_sets")
 }
 
-model CollectionVerse {
-  id           Int        @id @default(autoincrement())
-  collection   Collection @relation(fields: [collectionId], references: [id])
-  collectionId String
-  book         String
-  chapter      Int
-  verse        Int
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+model VerseSetVerse {
+  id         Int      @id @default(autoincrement())
+  verseSet   VerseSet @relation(fields: [verseSetId], references: [id])
+  verseSetId String
+  book       String
+  chapter    Int
+  verse      Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  @@map("collection_verses")
+  @@map("verse_set_verses")
 }
 
 model VerificationRequest {
