@@ -1,8 +1,9 @@
 'use client';
+import React from 'react';
 import { FileTextIcon, HandHeartIcon, InfoIcon, ShieldCheckIcon } from 'lucide-react';
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import React from 'react';
 
 const Footer = () => {
   const currentPath = usePathname();
