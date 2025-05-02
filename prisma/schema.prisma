@@ -19,6 +19,7 @@ model User {
   experience    Int         @default(0)
   password      String?
   userVerses    UserVerse[]
+  verseSets     VerseSet[]
   emailVerified DateTime?   @map("email_verified")
   image         String?
   created_at    DateTime    @default(now())
@@ -80,21 +81,13 @@ model UserVerseReview {
 model VerseSet {
   id        String          @id @default(cuid())
   name      String
+  user      User            @relation(fields: [userId], references: [id])
+  userId    String
   verses    VerseSetVerse[]
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
 
   @@map("verse_sets")
-}
-
-model UserVerseSet {
-  id         Int      @id @default(autoincrement())
-  userId     String
-  verseSetId String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  @@map("user_verse_sets")
 }
 
 model VerseSetVerse {

@@ -1,29 +1,20 @@
-import { ScrollArea } from '@/component-library/scroll-area';
+'use server';
 import { Card } from '@/component-library/card';
-import { Button } from '@/component-library/button';
-import { Separator } from '@/component-library/separator';
 
 import NewVerseSetDialog from './NewVerseSetDialog';
+import { fetchVerseSets } from '@/actions/fetchVerseSets';
+import VerseSetList from './VerseSetList';
+import { auth } from '@/auth';
 
-const VerseSetsPage = () => {
-  const sampleVerseSets = [
-    {
-      id: 0,
-      name: 'All Verses',
-    },
-    {
-      id: 1,
-      name: 'Verse Set 1',
-    },
-    {
-      id: 2,
-      name: 'Verse Set 2',
-    },
-    {
-      id: 3,
-      name: 'Verse Set 3',
-    },
-  ];
+const VerseSetsPage = async () => {
+  const session = await auth();
+
+  const userId = session?.user?.id;
+  if (!userId) {
+    return <div>Loading...</div>;
+  }
+
+  const verseSets = await fetchVerseSets(userId);
 
   return (
     <div className="fadein flex flex-row gap-4">
@@ -32,21 +23,7 @@ const VerseSetsPage = () => {
           <span className="ml-2 font-bold text-gray-900 dark:text-gray-300">Verse Sets</span>
           <NewVerseSetDialog />
         </div>
-        <ScrollArea className="h-full w-full rounded-b-lg bg-gray-800 p-2">
-          {sampleVerseSets.map((verseSet, index) => (
-            <div key={verseSet.id}>
-              <Button
-                className="my-1 w-full text-left text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-                variant="ghost"
-              >
-                {verseSet.name}
-              </Button>
-              {index !== sampleVerseSets.length - 1 && (
-                <Separator className="bg-gray-200 dark:bg-gray-700" />
-              )}
-            </div>
-          ))}
-        </ScrollArea>
+        <VerseSetList verseSets={verseSets} />
       </Card>
       <div className="w-1/2"></div>
     </div>
