@@ -12,7 +12,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <SessionProvider session={session}>
           <div
             id="app-container"
-            className="mx-auto flex max-h-full min-h-full max-w-screen-2xl flex-col gap-8 bg-background text-gray-700 dark:text-gray-300"
+            className="mx-auto flex max-h-full min-h-full max-w-screen-xl flex-col gap-8 bg-background text-gray-700 dark:text-gray-300"
           >
             <Header />
             <div id="app-body-container" className="mx-8 flex-grow">

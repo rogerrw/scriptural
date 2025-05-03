@@ -42,7 +42,7 @@ const SearchPage = () => {
   }, [book, chapterNumber, verseNumber, translation]);
   return (
     <div className="fadein">
-      <Card className="flex flex-row gap-4 border-none bg-gray-900 px-8 py-4">
+      <Card className="flex flex-row justify-center gap-4 border-none bg-gray-900 px-8 py-4">
         <div className="flex flex-col gap-2">
           <Label className="text-xs">Book</Label>
           <Combobox
