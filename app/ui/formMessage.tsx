@@ -8,7 +8,7 @@ interface FormMessageProps {
 
 const FormError = ({ message }: FormMessageProps) => {
   return message ? (
-    <Alert variant="destructive">
+    <Alert variant="destructive" className="bg-red-500">
       <IoWarning />
       <AlertDescription>{message}</AlertDescription>
     </Alert>

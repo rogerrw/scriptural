@@ -47,7 +47,6 @@ const NewVerseSetDialog = () => {
           variant="ghost"
           className="text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-600"
         >
-          {/* <Button className="mt-4">Add Collection +</Button> */}
           <PlusIcon className="h-4 w-4" />
         </Button>
       </DialogTrigger>
