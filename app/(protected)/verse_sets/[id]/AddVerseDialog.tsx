@@ -19,6 +19,8 @@ import {
   SelectValue,
   SelectTrigger,
   SelectContent,
+  SelectGroup,
+  SelectLabel,
 } from '@/component-library/select';
 import { Combobox } from '@/component-library/combobox';
 
@@ -140,15 +142,18 @@ const AddVerseDialog = ({ verseSetId }: AddVerseDialogProps) => {
           <div className="flex flex-col gap-2">
             <Label>Translation</Label>
             <Select value={translation} onValueChange={(value) => setTranslation(value)}>
-              <SelectTrigger className="h-10 w-[180px] dark:bg-background">
+              <SelectTrigger className="h-10 w-[180px]">
                 <SelectValue placeholder="Translation" />
               </SelectTrigger>
-              <SelectContent>
-                {translations.map((translation) => (
-                  <SelectItem key={translation.value} value={translation.value}>
-                    {translation.label}
-                  </SelectItem>
-                ))}
+              <SelectContent align="end">
+                <SelectGroup>
+                  <SelectLabel>Translations</SelectLabel>
+                  {translations.map((translation) => (
+                    <SelectItem key={translation.value} value={translation.value}>
+                      {translation.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               </SelectContent>
             </Select>
           </div>
