@@ -113,7 +113,7 @@ const AddVerseDialog = ({ verseSetId }: AddVerseDialogProps) => {
 
         <div className="flex flex-row gap-4 py-4">
           <div className="flex flex-col gap-2">
-            <Label>Book</Label>
+            <Label className="text-xs">Book</Label>
             <Combobox
               options={books.map((book) => ({
                 value: book.value,
@@ -124,7 +124,7 @@ const AddVerseDialog = ({ verseSetId }: AddVerseDialogProps) => {
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label>Chapter</Label>
+            <Label className="text-xs">Chapter</Label>
             <Input
               type="number"
               className="h-10 dark:bg-background"
@@ -135,7 +135,7 @@ const AddVerseDialog = ({ verseSetId }: AddVerseDialogProps) => {
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label>Verse</Label>
+            <Label className="text-xs">Verse</Label>
             <Input
               type="number"
               className="h-10 dark:bg-background"
@@ -146,12 +146,12 @@ const AddVerseDialog = ({ verseSetId }: AddVerseDialogProps) => {
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label>Translation</Label>
+            <Label className="text-xs">Translation</Label>
             <Select value={translation} onValueChange={(value) => setTranslation(value)}>
-              <SelectTrigger className="h-10 w-[180px]">
+              <SelectTrigger className="h-10 w-[120px]">
                 <SelectValue placeholder="Translation" />
               </SelectTrigger>
-              <SelectContent align="end">
+              <SelectContent>
                 <SelectGroup>
                   <SelectLabel>Translations</SelectLabel>
                   {translations.map((translation) => (

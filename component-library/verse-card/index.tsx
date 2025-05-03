@@ -18,7 +18,7 @@ const VerseCard = ({
   translation,
 }: VerseCardProps) => {
   return (
-    <Card className="border-none bg-transparent">
+    <Card className="m-8 border-none bg-transparent text-gray-700 dark:text-gray-300">
       <CardHeader className="flex flex-row items-center gap-4">
         <CardTitle className="text-md font-bold">
           {book} {chapterNumber}:{verseNumber}
