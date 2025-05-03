@@ -18,7 +18,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from '@/component-l
 import { Input } from '@/component-library/input';
 import { createVerseSet } from '@/actions/createVerseSet';
 import { useSession } from 'next-auth/react';
-const NewVerseSetDialog = () => {
+const CreateVerseSetDialog = () => {
   const session = useSession();
 
   const [open, setOpen] = useState(false);
@@ -45,7 +45,7 @@ const NewVerseSetDialog = () => {
       <DialogTrigger asChild>
         <Button
           variant="ghost"
-          className="text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-600"
+          className="text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700"
         >
           <PlusIcon className="h-4 w-4" />
         </Button>
@@ -85,4 +85,4 @@ const NewVerseSetDialog = () => {
   );
 };
 
-export default NewVerseSetDialog;
+export default CreateVerseSetDialog;

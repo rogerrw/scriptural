@@ -24,9 +24,9 @@ interface IVerseResult {
 }
 
 const SearchPage = () => {
-  const [book, setBook] = useState<string | undefined>('Esther');
-  const [chapterNumber, setChapterNumber] = useState<number | undefined>(8);
-  const [verseNumber, setVerseNumber] = useState<number | undefined>(9);
+  const [book, setBook] = useState<string | undefined>();
+  const [chapterNumber, setChapterNumber] = useState<number | undefined>();
+  const [verseNumber, setVerseNumber] = useState<number | undefined>();
   const [translation, setTranslation] = useState<string>('ESV');
   const [fetchedVerse, setFetchedVerse] = useState<IVerseResult | undefined>();
   const [isPending, startTransition] = useTransition();
@@ -51,6 +51,7 @@ const SearchPage = () => {
               label: book.label,
             }))}
             onChange={(value) => setBook(value)}
+            placeholder="Select a book"
             value={book}
           />
         </div>
