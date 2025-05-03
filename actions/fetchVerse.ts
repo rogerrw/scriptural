@@ -24,36 +24,13 @@ export async function fetchVerse(
     if (translation) {
       return {
         id: verseTranslations.id,
-        [translation]: verseTranslations[translation as keyof Verse],
+        text: verseTranslations[translation as keyof Verse],
       };
     }
-    console.log(verseTranslations);
     return verseTranslations;
   } catch (error) {
     console.error(`Error with fetching verse: ${error}`);
   } finally {
     delete (mongoose.connection.models as any)['Book'];
   }
-
-  // if (book && chapter && verse) {
-  //   let url = `/api/fetch_verse?book=${book}&chapter=${chapter}&verse=${verse}`;
-  //   if (translation) {
-  //     url += `&translation=${translation}`;
-  //   }
-  //   try {
-  //     const res = await fetch(url);
-  //     if (!res.ok) {
-  //       throw new Error('Invalid verse');
-  //     }
-
-  //     const result = await res.json();
-  //     if (translation) {
-  //       return result[translation];
-  //     }
-  //     // Return ESV by default
-  //     return result['ESV'];
-  //   } catch (err) {
-  //     console.error(`Error with fetching verse: ${err}`);
-  //   }
-  // }
 }

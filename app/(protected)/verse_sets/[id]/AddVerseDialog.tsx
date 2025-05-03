@@ -23,10 +23,10 @@ import {
   SelectLabel,
 } from '@/component-library/select';
 import { Combobox } from '@/component-library/combobox';
+import VerseCard from '@/component-library/verse-card';
 
 import { addVerseToSet } from '@/actions/addVerseToSet';
 import { fetchVerse } from '@/actions/fetchVerse';
-import { Verse } from '@/model/Book.schema';
 import { books, translations } from '@/constants/bible';
 import { Label } from '@/component-library/label';
 
@@ -41,14 +41,19 @@ interface AddVerseDialogProps {
   verseSetId: string;
 }
 
+interface IVerseResult {
+  id: string;
+  text: string;
+}
+
 const AddVerseDialog = ({ verseSetId }: AddVerseDialogProps) => {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  const [fetchedVerse, setFetchedVerse] = useState<Verse | undefined>();
+  const [fetchedVerse, setFetchedVerse] = useState<IVerseResult | undefined>();
   const [book, setBook] = useState<string | undefined>();
-  const [chapter, setChapter] = useState<number | undefined>();
-  const [verse, setVerse] = useState<number | undefined>();
+  const [chapterNumber, setChapterNumber] = useState<number | undefined>();
+  const [verseNumber, setVerseNumber] = useState<number | undefined>();
   const [translation, setTranslation] = useState<string>('ESV');
 
   const handleSubmit = () => {
@@ -67,23 +72,24 @@ const AddVerseDialog = ({ verseSetId }: AddVerseDialogProps) => {
 
   const resetForm = () => {
     setBook(undefined);
-    setChapter(undefined);
-    setVerse(undefined);
+    setChapterNumber(undefined);
+    setVerseNumber(undefined);
     setTranslation('ESV');
     setFetchedVerse(undefined);
   };
 
   useEffect(() => {
-    if (!book || !chapter || !verse) {
+    if (!book || !chapterNumber || !verseNumber) {
+      setFetchedVerse(undefined);
       return;
     }
 
-    fetchVerse(book, chapter, verse, translation).then((data) => {
-      setFetchedVerse(data as Verse);
+    fetchVerse(book, chapterNumber, verseNumber, translation).then((data) => {
+      setFetchedVerse(data as IVerseResult);
     });
-  }, [book, chapter, verse, translation]);
+  }, [book, chapterNumber, verseNumber, translation]);
 
-  const handleOpenChange = (open: boolean) => {
+  const toggleDialog = (open: boolean) => {
     if (!open) {
       resetForm();
     }
@@ -91,7 +97,7 @@ const AddVerseDialog = ({ verseSetId }: AddVerseDialogProps) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={toggleDialog}>
       <DialogTrigger asChild>
         <Button variant="ghost">
           <PlusIcon className="h-4 w-4" />
@@ -122,9 +128,9 @@ const AddVerseDialog = ({ verseSetId }: AddVerseDialogProps) => {
             <Input
               type="number"
               className="h-10 dark:bg-background"
-              onChange={(e) => setChapter(Number(e.target.value))}
+              onChange={(e) => setChapterNumber(Number(e.target.value))}
               disabled={isPending}
-              value={chapter || ''}
+              value={chapterNumber || ''}
               required
             />
           </div>
@@ -133,9 +139,9 @@ const AddVerseDialog = ({ verseSetId }: AddVerseDialogProps) => {
             <Input
               type="number"
               className="h-10 dark:bg-background"
-              onChange={(e) => setVerse(Number(e.target.value))}
+              onChange={(e) => setVerseNumber(Number(e.target.value))}
               disabled={isPending}
-              value={verse || ''}
+              value={verseNumber || ''}
               required
             />
           </div>
@@ -158,8 +164,19 @@ const AddVerseDialog = ({ verseSetId }: AddVerseDialogProps) => {
             </Select>
           </div>
         </div>
+        {fetchedVerse && (
+          <div className="fadein flex flex-col gap-4">
+            <VerseCard
+              verseText={fetchedVerse.text}
+              verseNumber={verseNumber}
+              book={book}
+              chapterNumber={chapterNumber}
+              translation={translation}
+            />
+          </div>
+        )}
         <DialogFooter>
-          <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+          <Button type="button" variant="ghost" onClick={() => toggleDialog(false)}>
             Cancel
           </Button>
           <Button disabled={!fetchedVerse} onClick={handleSubmit}>
