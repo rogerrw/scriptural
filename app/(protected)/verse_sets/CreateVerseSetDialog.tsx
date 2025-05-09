@@ -18,8 +18,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from '@/component-l
 import { Input } from '@/component-library/input';
 import { createVerseSet } from '@/actions/createVerseSet';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+
 const CreateVerseSetDialog = () => {
   const session = useSession();
+  const router = useRouter();
 
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -34,8 +37,13 @@ const CreateVerseSetDialog = () => {
   const handleSubmit = (values: z.infer<typeof VerseSetSchema>) => {
     startTransition(() => {
       createVerseSet(values).then((data) => {
-        console.log(data?.error);
-        console.log(data?.success);
+        if (data?.error) {
+          // TODO: Add error toast`
+        }
+        if (data?.success) {
+          router.push(`/verse_sets/${data?.verseSet.id}`);
+          router.refresh();
+        }
       });
     });
     setOpen(false);
