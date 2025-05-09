@@ -52,28 +52,32 @@ model Account {
 }
 
 model UserVerse {
-  id            Int      @id @default(autoincrement())
-  user          User     @relation(fields: [userId], references: [id])
-  userId        String
-  book          String
-  chapter       Int
-  startingVerse Int
-  endingVerse   Int?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id               Int               @id @default(autoincrement())
+  user             User              @relation(fields: [userId], references: [id])
+  userId           String
+  book             String
+  chapter          Int
+  startingVerse    Int
+  endingVerse      Int?
+  translation      String
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  userVerseReviews UserVerseReview[]
+  VerseSetVerse    VerseSetVerse[]
 
   @@map("user_verses")
 }
 
 model UserVerseReview {
-  id              Int      @id @default(autoincrement())
+  id              Int       @id @default(autoincrement())
+  userVerse       UserVerse @relation(fields: [userVerseId], references: [id])
   userVerseId     Int
   reviewedAt      DateTime
   difficulty      Int
   accuracy        Int
   detailedResults Json
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@map("user_verse_reviews")
 }
@@ -91,14 +95,13 @@ model VerseSet {
 }
 
 model VerseSetVerse {
-  id         Int      @id @default(autoincrement())
-  verseSet   VerseSet @relation(fields: [verseSetId], references: [id])
-  verseSetId String
-  book       String
-  chapter    Int
-  verse      Int
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          Int       @id @default(autoincrement())
+  verseSet    VerseSet  @relation(fields: [verseSetId], references: [id])
+  verseSetId  String
+  userVerse   UserVerse @relation(fields: [userVerseId], references: [id])
+  userVerseId Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@map("verse_set_verses")
 }

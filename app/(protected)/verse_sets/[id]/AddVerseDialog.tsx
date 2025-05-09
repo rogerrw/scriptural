@@ -57,16 +57,23 @@ const AddVerseDialog = ({ verseSetId }: AddVerseDialogProps) => {
   const [translation, setTranslation] = useState<string>('ESV');
 
   const handleSubmit = () => {
-    startTransition(() => {
-      // addVerseToSet({ ...values, verseSetId }).then((data) => {
-      //   if (data?.error) {
-      //     setError(data.error);
-      //   } else if (data?.success) {
-      //     setSuccess(data.success);
-      //     setOpen(false);
-      //     form.reset();
-      //   }
-      // });
+    startTransition(async () => {
+      const data = await addVerseToSet({
+        book: book || '',
+        chapter: chapterNumber || -1,
+        startingVerse: verseNumber || -1,
+        translation,
+        verseSetId,
+      });
+      if (data?.error) {
+        console.error(data.error);
+        // TODO: Add error toast
+      } else if (data?.success) {
+        console.log(data.success);
+        // TODO: Add success toast
+
+        toggleDialog(false);
+      }
     });
   };
 
