@@ -16,7 +16,13 @@ const Header = async () => {
   return (
     <header className="fadein mx-8 flex items-center justify-between p-8">
       <Link href="/">
-        <Image src="/sample_logo.png" width={240} height={40} alt="Picture of the author" />
+        <Image
+          src="/logo.svg"
+          width={276}
+          height={60}
+          alt="Picture of the author"
+          className="max-h-12"
+        />
       </Link>
       <div className="flex items-center gap-2">
         {!!session ? <PrivateHeaderActions /> : renderPublicHeaderActions()}
