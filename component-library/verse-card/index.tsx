@@ -23,8 +23,8 @@ const VerseCard = ({
   const router = useRouter();
 
   return (
-    <Card className="m-8 border-none bg-transparent text-gray-700 transition-colors dark:text-gray-300 dark:hover:bg-gray-900">
-      <div className="flex flex-row items-center gap-4">
+    <Card className="border-none bg-transparent text-gray-700 transition-colors dark:text-gray-300 dark:hover:bg-gray-900">
+      <div className="flex flex-row items-center justify-between gap-4">
         <div>
           <CardHeader className="flex flex-row items-center gap-4">
             <CardTitle className="text-md font-bold">
