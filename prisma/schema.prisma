@@ -8,19 +8,20 @@ datasource db {
 }
 
 model User {
-  id            String      @id @default(cuid())
-  email         String      @unique
-  name          String      @unique
-  experience    Int         @default(0)
-  password      String?
-  emailVerified DateTime?   @map("email_verified")
-  image         String?
-  created_at    DateTime    @default(now())
-  updated_at    DateTime    @updatedAt
-  role          UserRole    @default(USER)
-  accounts      Account[]
-  userVerses    UserVerse[]
-  verseSets     VerseSet[]
+  id             String          @id @default(cuid())
+  email          String          @unique
+  name           String          @unique
+  experience     Int             @default(0)
+  password       String?
+  emailVerified  DateTime?       @map("email_verified")
+  image          String?
+  created_at     DateTime        @default(now())
+  updated_at     DateTime        @updatedAt
+  role           UserRole        @default(USER)
+  accounts       Account[]
+  userVerses     UserVerse[]
+  verseSets      VerseSet[]
+  reviewSessions ReviewSession[]
 
   @@map("users")
 }
@@ -64,17 +65,30 @@ model UserVerse {
 }
 
 model UserVerseReview {
-  id              Int       @id @default(autoincrement())
+  id              Int           @id @default(autoincrement())
   userVerseId     Int
+  reviewSessionId String
   reviewedAt      DateTime
   difficulty      Int
   accuracy        Int
   detailedResults Json
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  userVerse       UserVerse @relation(fields: [userVerseId], references: [id])
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  userVerse       UserVerse     @relation(fields: [userVerseId], references: [id])
+  reviewSession   ReviewSession @relation(fields: [reviewSessionId], references: [id])
 
   @@map("user_verse_reviews")
+}
+
+model ReviewSession {
+  id               String            @id @default(cuid())
+  userId           String
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  userVerseReviews UserVerseReview[]
+  user             User              @relation(fields: [userId], references: [id])
+
+  @@map("review_sessions")
 }
 
 model VerseSet {
