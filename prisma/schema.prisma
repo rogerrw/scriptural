@@ -1,15 +1,10 @@
-datasource db {
-  provider = "postgresql"
-  url      = env("POSTGRES_URL")
-}
-
 generator client {
   provider = "prisma-client-js"
 }
 
-enum UserRole {
-  USER
-  ADMIN
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_URL")
 }
 
 model User {
@@ -18,14 +13,14 @@ model User {
   name          String      @unique
   experience    Int         @default(0)
   password      String?
-  userVerses    UserVerse[]
-  verseSets     VerseSet[]
   emailVerified DateTime?   @map("email_verified")
   image         String?
   created_at    DateTime    @default(now())
   updated_at    DateTime    @updatedAt
   role          UserRole    @default(USER)
   accounts      Account[]
+  userVerses    UserVerse[]
+  verseSets     VerseSet[]
 
   @@map("users")
 }
@@ -36,16 +31,15 @@ model Account {
   type              String
   provider          String
   providerAccountId String   @map("provider_account_id")
-  refresh_token     String?  @db.Text
-  access_token      String?  @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String?  @db.Text
+  id_token          String?
   created_at        DateTime @default(now())
   updated_at        DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@map("accounts")
@@ -53,16 +47,17 @@ model Account {
 
 model UserVerse {
   id               Int               @id @default(autoincrement())
-  user             User              @relation(fields: [userId], references: [id])
   userId           String
   book             String
   chapter          Int
   startingVerse    Int
   endingVerse      Int?
   translation      String
+  verseText        String
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   userVerseReviews UserVerseReview[]
+  user             User              @relation(fields: [userId], references: [id])
   VerseSetVerse    VerseSetVerse[]
 
   @@map("user_verses")
@@ -70,7 +65,6 @@ model UserVerse {
 
 model UserVerseReview {
   id              Int       @id @default(autoincrement())
-  userVerse       UserVerse @relation(fields: [userVerseId], references: [id])
   userVerseId     Int
   reviewedAt      DateTime
   difficulty      Int
@@ -78,6 +72,7 @@ model UserVerseReview {
   detailedResults Json
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+  userVerse       UserVerse @relation(fields: [userVerseId], references: [id])
 
   @@map("user_verse_reviews")
 }
@@ -85,23 +80,23 @@ model UserVerseReview {
 model VerseSet {
   id        String          @id @default(cuid())
   name      String
-  user      User            @relation(fields: [userId], references: [id])
   userId    String
-  verses    VerseSetVerse[]
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
+  verses    VerseSetVerse[]
+  user      User            @relation(fields: [userId], references: [id])
 
   @@map("verse_sets")
 }
 
 model VerseSetVerse {
   id          Int       @id @default(autoincrement())
-  verseSet    VerseSet  @relation(fields: [verseSetId], references: [id])
   verseSetId  String
-  userVerse   UserVerse @relation(fields: [userVerseId], references: [id])
   userVerseId Int
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  userVerse   UserVerse @relation(fields: [userVerseId], references: [id])
+  verseSet    VerseSet  @relation(fields: [verseSetId], references: [id])
 
   @@map("verse_set_verses")
 }
@@ -111,9 +106,14 @@ model VerificationRequest {
   token      String   @unique
   identifier String
   expires    DateTime
-  createdAt  DateTime @default(now()) @map(name: "created_at")
-  updatedAt  DateTime @default(now()) @map(name: "updated_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @map("updated_at")
 
   @@unique([identifier, token])
   @@map("verification_requests")
+}
+
+enum UserRole {
+  USER
+  ADMIN
 }
