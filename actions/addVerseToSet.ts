@@ -52,7 +52,7 @@ export async function addVerseToSet(params: z.infer<typeof AddVerseSchema>) {
     };
   } catch (error) {
     return {
-      error: 'Failed to add verse to set',
+      error: `Failed to add verse to set: ${error}`,
     };
   }
 }

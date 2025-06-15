@@ -24,6 +24,14 @@ export async function fetchOrCreateUserVerse(params: z.infer<typeof FetchOrCreat
       error: 'Unauthorized',
     };
   }
+
+  const verseText = await fetchVerse(book, chapter, startingVerse, translation);
+  if (!verseText) {
+    return {
+      error: 'This verse does not exist in the Bible.',
+    };
+  }
+
   const userVerse = await prisma.userVerse.findFirst({
     where: {
       userId: user.id,
@@ -33,15 +41,9 @@ export async function fetchOrCreateUserVerse(params: z.infer<typeof FetchOrCreat
       translation,
     },
   });
+
   if (userVerse) {
     return userVerse;
-  }
-
-  const verse = await fetchVerse(book, chapter, startingVerse, translation);
-  if (!verse) {
-    return {
-      error: 'This verse is not in the Bible.',
-    };
   }
 
   const newUserVerse = await prisma.userVerse.create({
@@ -51,6 +53,7 @@ export async function fetchOrCreateUserVerse(params: z.infer<typeof FetchOrCreat
       startingVerse,
       translation,
       userId: user.id,
+      verseText: verseText.text,
     },
   });
   return newUserVerse;

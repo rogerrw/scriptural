@@ -8,7 +8,7 @@ export async function fetchVerse(
   book: string,
   chapter: number,
   verse: number,
-  translation?: string,
+  translation: string,
 ) {
   try {
     await dbConnect();
@@ -18,18 +18,17 @@ export async function fetchVerse(
       { verses: { $elemMatch: { id: `${book}_${chapter}_${verse}` } } },
     );
     if (!verseObj) {
-      return;
+      throw new Error('This verse could not be found.');
     }
     const verseTranslations = verseObj.verses[0];
-    if (translation) {
-      return {
-        id: verseTranslations.id,
-        text: verseTranslations[translation as keyof Verse],
-      };
-    }
-    return verseTranslations;
+
+    return {
+      id: verseTranslations.id,
+      text: verseTranslations[translation as keyof Verse] as string,
+    };
   } catch (error) {
     console.error(`Error with fetching verse: ${error}`);
+    throw error;
   } finally {
     delete (mongoose.connection.models as any)['Book'];
   }
