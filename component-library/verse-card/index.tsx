@@ -3,7 +3,13 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../card';
 import { Button } from '../button';
-import { EllipsisIcon, KeyboardIcon } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/component-library/dropdown-menu';
+import { EllipsisIcon, KeyboardIcon, TrashIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 interface VerseCardProps {
   verseText: string;
@@ -11,6 +17,10 @@ interface VerseCardProps {
   book?: string;
   chapterNumber?: number;
   translation?: string;
+  verseId?: number;
+  setVerseId: React.Dispatch<React.SetStateAction<number>>;
+  openDeleteDialog?: boolean;
+  setOpenDeleteDialog: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const VerseCard = ({
@@ -19,8 +29,35 @@ const VerseCard = ({
   book,
   chapterNumber,
   translation,
+  verseId,
+  setVerseId,
+  openDeleteDialog,
+  setOpenDeleteDialog,
 }: VerseCardProps) => {
   const router = useRouter();
+
+  const EditVerseCard = () => {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost">
+            <EllipsisIcon />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem
+            onClick={() => {
+              setVerseId(verseId || 0);
+              setOpenDeleteDialog(!openDeleteDialog);
+            }}
+          >
+            <TrashIcon />
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  };
 
   return (
     <Card className="border-none bg-transparent text-gray-700 transition-colors dark:text-gray-300 dark:hover:bg-gray-900">
@@ -47,9 +84,7 @@ const VerseCard = ({
           >
             <KeyboardIcon />
           </Button>
-          <Button variant="ghost">
-            <EllipsisIcon />
-          </Button>
+          {verseId && <EditVerseCard />}
         </div>
       </div>
     </Card>
