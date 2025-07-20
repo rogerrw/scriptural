@@ -8,8 +8,7 @@ const VerseSetPage = async ({ params }: { params: { id: string } }) => {
     return <div>{verseSet.error}</div>;
   }
 
-  const verses = verseSet?.verses;
-  return <VerseSetContent params={params} verses={verses} verseSet={verseSet} />;
+  return <VerseSetContent params={params} verseSet={verseSet} />;
 };
 
 export default VerseSetPage;

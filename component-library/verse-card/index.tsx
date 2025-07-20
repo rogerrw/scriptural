@@ -18,9 +18,9 @@ interface VerseCardProps {
   chapterNumber?: number;
   translation?: string;
   verseId?: number;
-  setVerseId: React.Dispatch<React.SetStateAction<number>>;
+  setVerseId?: React.Dispatch<React.SetStateAction<number>>;
   openDeleteDialog?: boolean;
-  setOpenDeleteDialog: React.Dispatch<React.SetStateAction<boolean>>;
+  setOpenDeleteDialog?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const VerseCard = ({
@@ -47,8 +47,8 @@ const VerseCard = ({
         <DropdownMenuContent>
           <DropdownMenuItem
             onClick={() => {
-              setVerseId(verseId || 0);
-              setOpenDeleteDialog(!openDeleteDialog);
+              setVerseId?.(verseId || 0);
+              setOpenDeleteDialog?.(!openDeleteDialog);
             }}
           >
             <TrashIcon />

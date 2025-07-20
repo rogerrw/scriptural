@@ -8,13 +8,13 @@ import { useState } from 'react';
 
 type VerseSetContentProps = {
   params: any;
-  verses: any;
   verseSet: any;
 };
 
-const VerseSetContent = ({ params, verses, verseSet }: VerseSetContentProps) => {
+const VerseSetContent = ({ params, verseSet }: VerseSetContentProps) => {
   const [verseId, setVerseId] = useState(0);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const verses = verseSet?.verses;
   return (
     <div className="fadein flex flex-col gap-8 px-12 py-4">
       <h1 className="text-3xl font-bold">{verseSet?.name}</h1>
