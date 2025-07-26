@@ -18,14 +18,14 @@ export async function saveVerses(params: UserVerse) {
       error: 'Already saved this verse',
     };
   }
-  await prisma.userVerse.create({
-    data: {
-      userId,
-      book,
-      chapter,
-      startingVerse,
-    },
-  });
+  // await prisma.userVerse.create({
+  //   data: {
+  //     userId,
+  //     book,
+  //     chapter,
+  //     startingVerse,
+  //   },
+  // });
 
   return {
     success: 'Verse saved in collection!',
