@@ -31,7 +31,7 @@ const VerseSetContent = ({ params, verseSet }: VerseSetContentProps) => {
         />
       </div>
       <div className="flex flex-col gap-4">
-        {verses?.map((verse) => (
+        {verses?.map((verse: any) => (
           <VerseCard
             key={verse.id}
             verseText={verse.userVerse.verseText}

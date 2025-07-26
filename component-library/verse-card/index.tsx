@@ -36,7 +36,7 @@ const VerseCard = ({
 }: VerseCardProps) => {
   const router = useRouter();
 
-  const EditVerseCard = () => {
+  const VerseCardActions = () => {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -84,7 +84,8 @@ const VerseCard = ({
           >
             <KeyboardIcon />
           </Button>
-          {verseId && <EditVerseCard />}
+          <VerseCardActions />
+          {verseId && <VerseCardActions />}
         </div>
       </div>
     </Card>

@@ -104,9 +104,10 @@ const HomePage = () => {
       </div>
       {userId ? (
         <div className="p-5">
-          <Button onClick={saveVerse} disabled={!book || !chapter || !verse}>
+          {/* Currently broken */}
+          {/* <Button disabled={!book || !chapter || !verse}>
             Save Verse
-          </Button>
+          </Button> */}
         </div>
       ) : (
         <></>
