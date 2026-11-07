@@ -7,14 +7,14 @@ import VerseCard from '@/component-library/verse-card';
 const VerseSetPage = async ({ params }: { params: { id: string } }) => {
   const verseSet = await fetchVerseSet(params.id);
 
-  if (verseSet.error) {
+  if ('error' in verseSet) {
     return <div>{verseSet.error}</div>;
   }
 
-  const verses = verseSet?.verses;
+  const verses = verseSet.verses;
   return (
     <div className="fadein flex flex-col gap-8 px-12 py-4">
-      <h1 className="text-3xl font-bold">{verseSet?.name}</h1>
+      <h1 className="text-3xl font-bold">{verseSet.name}</h1>
       <div className="flex flex-row gap-2">
         <Button>
           <KeyboardIcon className="h-4 w-4" />
@@ -39,4 +39,3 @@ const VerseSetPage = async ({ params }: { params: { id: string } }) => {
 };
 
 export default VerseSetPage;
-console.log();
