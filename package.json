@@ -1,8 +1,9 @@
 {
   "private": true,
   "scripts": {
+    "postinstall": "prisma generate",
     "build": "prisma generate && next build",
-    "dev": "next dev",
+    "dev": "prisma generate && next dev",
     "start": "next start",
     "db:start": "docker compose up",
     "storybook": "storybook dev -p 6006",
