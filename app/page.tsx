@@ -6,8 +6,18 @@ import { Label } from '@/component-library/label';
 import VerseTyper from '@/component-library/verseTyper';
 import React, { useEffect, useState } from 'react';
 import { saveVerses } from '../actions/saveVerse';
+import { recordAttempt } from '../actions/recordAttempt';
 import { FormError, FormSuccess } from './ui/formMessage';
 import { UserVerse } from '@prisma/client';
+import type { AttemptSummary, FinishedAttempt } from '@/lib/typing';
+
+const DEFAULT_VERSE = {
+  book: 'Psalms',
+  chapter: 119,
+  startingVerse: 105,
+  translation: 'ESV',
+  text: 'Your word is a lamp to my feet and a light to my path.',
+};
 
 const HomePage = () => {
   const [userId, setUserId] = useState<string | undefined>('');
@@ -18,9 +28,8 @@ const HomePage = () => {
   const [chapter, setChapter] = useState<number>();
   const [verse, setVerse] = useState<number>();
   const [translation, setTranslation] = useState<string>('');
-  const [fetchedVerse, setFetchedVerse] = useState<string>(
-    'Your word is a lamp to my feet and a light to my path.', // TODO: fetch random or default verse to save
-  );
+  const [loadedVerse, setLoadedVerse] = useState(DEFAULT_VERSE);
+  const [attemptSummary, setAttemptSummary] = useState<AttemptSummary | null>(null);
   async function fetchVerse() {
     if (book && chapter && verse) {
       let url = `/api/fetch_verse?book=${book}&chapter=${chapter}&verse=${verse}`;
@@ -34,7 +43,18 @@ const HomePage = () => {
         }
 
         const result = await res.json();
-        setFetchedVerse(translation ? result[translation] : result['ESV']);
+        const chosenTranslation = translation || 'ESV';
+        const text = result[chosenTranslation] ?? result.ESV;
+        if (typeof text === 'string' && text.length > 0) {
+          setLoadedVerse({
+            book,
+            chapter,
+            startingVerse: verse,
+            translation: chosenTranslation,
+            text,
+          });
+          setAttemptSummary(null);
+        }
       } catch (err) {}
     }
   }
@@ -111,7 +131,45 @@ const HomePage = () => {
       ) : (
         <></>
       )}
-      <VerseTyper verseText={fetchedVerse} />
+      {attemptSummary ? (
+        <div className="mb-8 text-center font-mono" id="attempt-summary">
+          <p>Grade {Math.round(attemptSummary.score.grade)}</p>
+          <p>Errors {attemptSummary.score.errorCount}</p>
+          <p>
+            Speed {Math.round(attemptSummary.score.cpm)} characters per minute (
+            {Math.round(attemptSummary.wpm)} words per minute)
+          </p>
+          <p>This translation {Math.round(attemptSummary.translationCpm)} characters per minute</p>
+          <p>Mastery {Math.round(attemptSummary.mastery)}</p>
+          <p>Overall speed {Math.round(attemptSummary.globalCpm)} characters per minute</p>
+        </div>
+      ) : null}
+      <VerseTyper
+        key={loadedVerse.text}
+        verseText={loadedVerse.text}
+        onComplete={(finished: FinishedAttempt) => {
+          void recordAttempt({
+            attemptId: crypto.randomUUID(),
+            book: loadedVerse.book,
+            chapter: loadedVerse.chapter,
+            startingVerse: loadedVerse.startingVerse,
+            translation: loadedVerse.translation,
+            verseText: loadedVerse.text,
+            keystrokes: finished.keystrokes.map((keystroke) =>
+              keystroke.kind === 'insert'
+                ? { kind: 'insert' as const, char: keystroke.char, t: keystroke.t }
+                : { kind: 'delete' as const, t: keystroke.t },
+            ),
+          }).then((result) => {
+            if ('error' in result) {
+              setError(result.error);
+              return;
+            }
+            setError(undefined);
+            setAttemptSummary(result.summary);
+          });
+        }}
+      />
     </div>
   );
 };
