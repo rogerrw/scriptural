@@ -8,7 +8,6 @@ import React, { useEffect, useState } from 'react';
 import { saveVerses } from '../actions/saveVerse';
 import { recordAttempt } from '../actions/recordAttempt';
 import { FormError, FormSuccess } from './ui/formMessage';
-import { UserVerse } from '@prisma/client';
 import type { AttemptSummary, FinishedAttempt } from '@/lib/typing';
 
 const DEFAULT_VERSE = {
@@ -60,13 +59,13 @@ const HomePage = () => {
   }
   async function saveVerse() {
     if (userId && book && chapter && verse) {
-      const values = {
-        userId: userId,
-        book: book,
-        chapter: chapter,
+      const res = await saveVerses({
+        userId,
+        book,
+        chapter,
         startingVerse: verse,
-      } as UserVerse;
-      const res = await saveVerses(values);
+        translation: translation || 'ESV',
+      });
       setSuccess(res?.success);
       setError(res?.error);
     }
