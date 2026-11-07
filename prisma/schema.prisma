@@ -65,18 +65,23 @@ model UserVerse {
 }
 
 model UserVerseReview {
-  id              Int           @id @default(autoincrement())
+  id              Int      @id @default(autoincrement())
+  attemptId       String   @unique
   userVerseId     Int
   reviewSessionId String
   reviewedAt      DateTime
   difficulty      Int
-  accuracy        Int
-  detailedResults Json
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  grade           Float
+  errorCount      Int
+  elapsedMs       Int
+  cpm             Float
+  keystrokes      Json
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
   userVerse       UserVerse     @relation(fields: [userVerseId], references: [id])
   reviewSession   ReviewSession @relation(fields: [reviewSessionId], references: [id])
 
+  @@index([userVerseId])
   @@map("user_verse_reviews")
 }
 
