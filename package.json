@@ -73,6 +73,6 @@
     "storybook": "^8.3.6"
   },
   "engines": {
-    "node": "20.x"
+    "node": "26.x"
   }
 }
