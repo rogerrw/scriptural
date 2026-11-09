@@ -1,6 +1,13 @@
 'use client';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/component-library/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/component-library/dialog';
 import { Input } from '@/component-library/input';
 import { Label } from '@/component-library/label';
 import VerseTyper from '@/component-library/verseTyper';
@@ -130,19 +137,37 @@ const HomePage = () => {
       ) : (
         <></>
       )}
-      {attemptSummary ? (
-        <div className="mb-8 text-center font-mono" id="attempt-summary">
-          <p>Grade {Math.round(attemptSummary.score.grade)}</p>
-          <p>Errors {attemptSummary.score.errorCount}</p>
-          <p>
-            Speed {Math.round(attemptSummary.score.cpm)} characters per minute (
-            {Math.round(attemptSummary.wpm)} words per minute)
-          </p>
-          <p>This translation {Math.round(attemptSummary.translationCpm)} characters per minute</p>
-          <p>Mastery {Math.round(attemptSummary.mastery)}</p>
-          <p>Overall speed {Math.round(attemptSummary.globalCpm)} characters per minute</p>
-        </div>
-      ) : null}
+      <Dialog
+        open={attemptSummary !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setAttemptSummary(null);
+          }
+        }}
+      >
+        <DialogContent id="attempt-summary">
+          <DialogHeader>
+            <DialogTitle>Results</DialogTitle>
+            <DialogDescription>
+              {loadedVerse.book} {loadedVerse.chapter}:{loadedVerse.startingVerse}{' '}
+              {loadedVerse.translation}
+            </DialogDescription>
+          </DialogHeader>
+          {attemptSummary ? (
+            <div className="space-y-2 text-center font-mono">
+              <p>Grade {Math.round(attemptSummary.score.grade)}</p>
+              <p>Errors {attemptSummary.score.errorCount}</p>
+              <p>
+                Speed {Math.round(attemptSummary.score.cpm)} characters per minute (
+                {Math.round(attemptSummary.wpm)} words per minute)
+              </p>
+              <p>This translation {Math.round(attemptSummary.translationCpm)} characters per minute</p>
+              <p>Mastery {Math.round(attemptSummary.mastery)}</p>
+              <p>Overall speed {Math.round(attemptSummary.globalCpm)} characters per minute</p>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
       <VerseTyper
         key={loadedVerse.text}
         verseText={loadedVerse.text}
