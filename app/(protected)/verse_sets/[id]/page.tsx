@@ -4,8 +4,9 @@ import { KeyboardIcon } from 'lucide-react';
 import AddVerseDialog from './AddVerseDialog';
 import VerseCard from '@/component-library/verse-card';
 
-const VerseSetPage = async ({ params }: { params: { id: string } }) => {
-  const verseSet = await fetchVerseSet(params.id);
+const VerseSetPage = async ({ params }: { params: Promise<{ id: string }> }) => {
+  const { id } = await params;
+  const verseSet = await fetchVerseSet(id);
 
   if ('error' in verseSet) {
     return <div>{verseSet.error}</div>;
@@ -20,7 +21,7 @@ const VerseSetPage = async ({ params }: { params: { id: string } }) => {
           <KeyboardIcon className="h-4 w-4" />
           Review
         </Button>
-        <AddVerseDialog verseSetId={params.id} />
+        <AddVerseDialog verseSetId={id} />
       </div>
       <div className="flex flex-col gap-4">
         {verses?.map((verse) => (
