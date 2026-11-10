@@ -10,7 +10,7 @@ const StaticContent = ({ title, children, className }: StaticContentProps) => {
   return (
     <article
       className={cn(
-        'w-full min-w-0 max-w-full text-base leading-relaxed text-gray-600 dark:text-gray-300',
+        'fadein w-full min-w-0 max-w-full text-base leading-relaxed text-gray-600 dark:text-gray-300',
         className,
       )}
     >
