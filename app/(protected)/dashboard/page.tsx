@@ -1,22 +1,22 @@
-import Link from 'next/link';
-
 import { auth } from '@/auth';
-import { logout } from '@/actions/auth';
-import { Button } from '@/component-library/button';
+import prisma from '@/prisma';
 
 const DashboardPage = async () => {
   const session = await auth();
-  console.log('session', session);
+  const userId = session?.user?.id;
+  if (!userId) {
+    throw new Error('Dashboard rendered without session.user.id');
+  }
+
+  const [practicedVerses, completedReviewSessions] = await Promise.all([
+    prisma.userVerse.count({ where: { userId, userVerseReviews: { some: {} } } }),
+    prisma.reviewSession.count({ where: { userId } }),
+  ]);
+
   return (
     <div className="fadein">
-      {`session ${JSON.stringify(session)}`}
-
-      <form action={logout}>
-        <Button className="gap-2">
-          <Link href="/user">User</Link>
-        </Button>
-        <Button type="submit">Log out</Button>
-      </form>
+      <p>Practiced verses: {practicedVerses}</p>
+      <p>Completed review sessions: {completedReviewSessions}</p>
     </div>
   );
 };
