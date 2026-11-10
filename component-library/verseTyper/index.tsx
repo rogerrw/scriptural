@@ -64,6 +64,59 @@ function keystrokesFromInput(
   return 'blocked';
 }
 
+export function VerseTypedText({
+  verseText,
+  typed,
+  onClick,
+}: {
+  verseText: string;
+  typed: string;
+  onClick?: () => void;
+}) {
+  const parts: { kind: 'word' | 'space'; text: string; start: number }[] = [];
+  let cursor = 0;
+  while (cursor < verseText.length) {
+    if (verseText[cursor] === ' ') {
+      parts.push({ kind: 'space', text: ' ', start: cursor });
+      cursor += 1;
+      continue;
+    }
+    const start = cursor;
+    while (cursor < verseText.length && verseText[cursor] !== ' ') {
+      cursor += 1;
+    }
+    parts.push({ kind: 'word', text: verseText.slice(start, cursor), start });
+  }
+
+  return (
+    <div
+      id="verse-display"
+      className="flex flex-wrap items-end justify-center gap-x-3 gap-y-8 font-mono text-4xl"
+      onClick={onClick}
+    >
+      {parts.map((part) => {
+        if (part.kind === 'space') {
+          const typedChar = part.start < typed.length ? typed[part.start] : undefined;
+          return (
+            <div key={part.start} className="w-4">
+              <Letter referenceChar=" " typedChar={typedChar} />
+            </div>
+          );
+        }
+        return (
+          <div key={part.start} className="flex">
+            {[...part.text].map((referenceChar, offset) => {
+              const index = part.start + offset;
+              const typedChar = index < typed.length ? typed[index] : undefined;
+              return <Letter key={index} referenceChar={referenceChar} typedChar={typedChar} />;
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 const VerseTyper = ({ verseText, onComplete }: VerseTyperProps) => {
   const [attempt, setAttempt] = useState<Attempt>(() => startAttempt(verseText));
   const inputRef = useRef<HTMLInputElement>(null);
@@ -125,51 +178,13 @@ const VerseTyper = ({ verseText, onComplete }: VerseTyperProps) => {
     return () => input.removeEventListener('beforeinput', onBeforeInput);
   }, [verseText]);
 
-  const parts: { kind: 'word' | 'space'; text: string; start: number }[] = [];
-  let cursor = 0;
-  while (cursor < verseText.length) {
-    if (verseText[cursor] === ' ') {
-      parts.push({ kind: 'space', text: ' ', start: cursor });
-      cursor += 1;
-      continue;
-    }
-    const start = cursor;
-    while (cursor < verseText.length && verseText[cursor] !== ' ') {
-      cursor += 1;
-    }
-    parts.push({ kind: 'word', text: verseText.slice(start, cursor), start });
-  }
-
   return (
     <div className="mx-32 flex-grow justify-center">
-      <div
-        id="verse-display"
-        className="flex flex-wrap items-end gap-x-3 gap-y-8 font-mono text-4xl"
+      <VerseTypedText
+        verseText={verseText}
+        typed={attempt.typed}
         onClick={() => inputRef.current?.focus()}
-      >
-        {parts.map((part) => {
-          if (part.kind === 'space') {
-            const typedChar =
-              part.start < attempt.typed.length ? attempt.typed[part.start] : undefined;
-            return (
-              <div key={part.start} className="w-4">
-                <Letter referenceChar=" " typedChar={typedChar} />
-              </div>
-            );
-          }
-          return (
-            <div key={part.start} className="flex">
-              {[...part.text].map((referenceChar, offset) => {
-                const index = part.start + offset;
-                const typedChar = index < attempt.typed.length ? attempt.typed[index] : undefined;
-                return (
-                  <Letter key={index} referenceChar={referenceChar} typedChar={typedChar} />
-                );
-              })}
-            </div>
-          );
-        })}
-      </div>
+      />
       <Input
         ref={inputRef}
         autoFocus

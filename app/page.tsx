@@ -3,7 +3,7 @@ import { useSession } from 'next-auth/react';
 import { Button } from '@/component-library/button';
 import { Input } from '@/component-library/input';
 import { Label } from '@/component-library/label';
-import VerseTyper from '@/component-library/verseTyper';
+import VerseTyper, { VerseTypedText } from '@/component-library/verseTyper';
 import React, { useEffect, useState } from 'react';
 import { saveVerses } from '../actions/saveVerse';
 import { recordAttempt } from '../actions/recordAttempt';
@@ -28,7 +28,10 @@ const HomePage = () => {
   const [verse, setVerse] = useState<number>();
   const [translation, setTranslation] = useState<string>('');
   const [loadedVerse, setLoadedVerse] = useState(DEFAULT_VERSE);
-  const [attemptSummary, setAttemptSummary] = useState<AttemptSummary | null>(null);
+  const [attemptKey, setAttemptKey] = useState(0);
+  const [completed, setCompleted] = useState<{ summary: AttemptSummary; typed: string } | null>(
+    null,
+  );
   async function fetchVerse() {
     if (book && chapter && verse) {
       let url = `/api/fetch_verse?book=${book}&chapter=${chapter}&verse=${verse}`;
@@ -52,7 +55,7 @@ const HomePage = () => {
             translation: chosenTranslation,
             text,
           });
-          setAttemptSummary(null);
+          setCompleted(null);
         }
       } catch (err) {}
     }
@@ -75,6 +78,43 @@ const HomePage = () => {
       setUserId(session.data?.user?.id);
     }
   }, []);
+
+  if (completed) {
+    return (
+      <div
+        id="attempt-summary"
+        className="fadein flex min-h-[70vh] w-full flex-col items-center gap-10 py-8"
+      >
+        <div className="space-y-2 text-center font-mono">
+          <p>
+            {loadedVerse.book} {loadedVerse.chapter}:{loadedVerse.startingVerse}{' '}
+            {loadedVerse.translation}
+          </p>
+          <p>Grade {Math.round(completed.summary.score.grade)}</p>
+          <p>Errors {completed.summary.score.errorCount}</p>
+          <p>
+            Speed {Math.round(completed.summary.score.cpm)} characters per minute (
+            {Math.round(completed.summary.wpm)} words per minute)
+          </p>
+          <p>
+            This translation {Math.round(completed.summary.translationCpm)} characters per minute
+          </p>
+          <p>Mastery {Math.round(completed.summary.mastery)}</p>
+          <p>Overall speed {Math.round(completed.summary.globalCpm)} characters per minute</p>
+        </div>
+        <VerseTypedText verseText={loadedVerse.text} typed={completed.typed} />
+        <Button
+          className="mt-auto"
+          onClick={() => {
+            setCompleted(null);
+            setAttemptKey((key) => key + 1);
+          }}
+        >
+          Next
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="fadein flex flex-col items-center">
@@ -130,21 +170,8 @@ const HomePage = () => {
       ) : (
         <></>
       )}
-      {attemptSummary ? (
-        <div className="mb-8 text-center font-mono" id="attempt-summary">
-          <p>Grade {Math.round(attemptSummary.score.grade)}</p>
-          <p>Errors {attemptSummary.score.errorCount}</p>
-          <p>
-            Speed {Math.round(attemptSummary.score.cpm)} characters per minute (
-            {Math.round(attemptSummary.wpm)} words per minute)
-          </p>
-          <p>This translation {Math.round(attemptSummary.translationCpm)} characters per minute</p>
-          <p>Mastery {Math.round(attemptSummary.mastery)}</p>
-          <p>Overall speed {Math.round(attemptSummary.globalCpm)} characters per minute</p>
-        </div>
-      ) : null}
       <VerseTyper
-        key={loadedVerse.text}
+        key={`${loadedVerse.text}:${attemptKey}`}
         verseText={loadedVerse.text}
         onComplete={(finished: FinishedAttempt) => {
           void recordAttempt({
@@ -165,7 +192,7 @@ const HomePage = () => {
               return;
             }
             setError(undefined);
-            setAttemptSummary(result.summary);
+            setCompleted({ summary: result.summary, typed: finished.typed });
           });
         }}
       />
