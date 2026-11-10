@@ -1,5 +1,7 @@
+import StaticContent from '@/component-library/static-content';
+
 const TermsPage = () => {
-  return <div className="fadein">TermsPage</div>;
+  return <StaticContent title="Terms" />;
 };
 
 export default TermsPage;

@@ -1,5 +1,7 @@
+import StaticContent from '@/component-library/static-content';
+
 const SupportPage = () => {
-  return <div className="fadein">SupportPage</div>;
+  return <StaticContent title="Support" />;
 };
 
 export default SupportPage;
