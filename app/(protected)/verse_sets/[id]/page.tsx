@@ -1,15 +1,15 @@
 import { fetchVerseSet } from '@/actions/fetchVerseSet';
 import VerseSetContent from './VerseSetContent';
 
-const VerseSetPage = async ({ params }: { params: { id: string } }) => {
-  const verseSet = await fetchVerseSet(params.id);
+const VerseSetPage = async ({ params }: { params: Promise<{ id: string }> }) => {
+  const { id } = await params;
+  const verseSet = await fetchVerseSet(id);
 
-  if (verseSet.error) {
+  if ('error' in verseSet) {
     return <div>{verseSet.error}</div>;
   }
 
-  return <VerseSetContent params={params} verseSet={verseSet} />;
+  return <VerseSetContent verseSetId={id} verseSet={verseSet} />;
 };
 
 export default VerseSetPage;
-console.log();

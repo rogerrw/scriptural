@@ -1,177 +1,202 @@
 'use client';
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Input } from '../input';
+import {
+  applyKeystroke,
+  charMatches,
+  startAttempt,
+  type Attempt,
+  type FinishedAttempt,
+  type Keystroke,
+} from '@/lib/typing';
 
 interface VerseTyperProps {
   verseText: string;
-  /**
-   * Difficulty level of the verse being typed. At increasing difficulty levels, more words will be hidden until none of the reference verse shows up. The user will also be awarded more points at higher levels of difficulty
-   */
-  difficulty?: 0 | 1 | 2 | 3 | 4 | 5;
+  onComplete?: (attempt: FinishedAttempt) => void;
 }
 
-interface WordProps {
-  referenceWord: string;
-  typedWord?: string;
-  validationMethod?: 'alphanumeric' | 'exact' | 'first letter';
-  wordIndex: number;
-  currentWordIndex: number;
-  currentLetterIndex: number;
-}
-interface LetterProps {
+const Letter = ({
+  referenceChar,
+  typedChar,
+}: {
   referenceChar: string;
   typedChar?: string;
-  wordIndex: number;
-  currentWordIndex: number;
-  letterIndex: number;
-}
-
-const Letter = ({ referenceChar, typedChar, wordIndex, currentWordIndex }: LetterProps) => {
-  if (typedChar) {
-    if (referenceChar) {
-      if (typedChar.toLowerCase() === referenceChar.toLowerCase()) {
-        return <div className="text-white">{typedChar}</div>;
-      }
-      if (typedChar.toLowerCase() !== referenceChar.toLowerCase()) {
-        return <div className="text-red-400 line-through">{typedChar}</div>;
-      }
-    } else {
-      // No reference char means the user typed extraneous letters
-      return <div className="text-red-400 line-through opacity-50">{typedChar}</div>;
-    }
-  } else {
-    if (wordIndex < currentWordIndex && referenceChar) {
-      return <div className="text-red-400 opacity-50">{referenceChar}</div>;
-    }
+}) => {
+  if (typedChar === undefined) {
     return <div className="opacity-50">{referenceChar}</div>;
   }
+  if (charMatches(typedChar, referenceChar)) {
+    return <div className="text-white">{typedChar}</div>;
+  }
+  return <div className="text-red-400 line-through">{typedChar}</div>;
 };
 
-const Word = ({ referenceWord, wordIndex, typedWord = '', currentWordIndex }: WordProps) => {
-  // TODO: Add different regex matchers for various verse typing validations
-  // - alphanumeric only (default)
-  // - exact (included)
-  // - first letter only
+function wordCut(typed: string): number {
+  let index = typed.length;
+  while (index > 0 && typed[index - 1] === ' ') {
+    index -= 1;
+  }
+  while (index > 0 && typed[index - 1] !== ' ') {
+    index -= 1;
+  }
+  return index;
+}
 
-  const alphanumericValidator = /s/i; // generate the validator based on the typedWord
-  // check if the validator matches the referenceWord. If it does not, render the word in error color
-
-  const renderLetters = () => {
-    if (typedWord.length >= referenceWord.length) {
-      return typedWord.split('').map((typedChar, index) => {
-        return (
-          <Letter
-            typedChar={typedChar}
-            referenceChar={referenceWord?.[index]}
-            letterIndex={index}
-            wordIndex={wordIndex}
-            currentWordIndex={currentWordIndex}
-          />
-        );
-      });
+function keystrokesFromInput(
+  event: InputEvent,
+  typed: string,
+  t: number,
+): readonly Keystroke[] | 'blocked' {
+  if (event.inputType === 'insertText' || event.inputType === 'insertCompositionText') {
+    const data = event.data ?? '';
+    if (data.length === 0) {
+      return 'blocked';
     }
+    return [...data].map((char) => ({ kind: 'insert' as const, char, t }));
+  }
+  if (event.inputType === 'deleteContentBackward') {
+    return typed.length === 0 ? [] : [{ kind: 'delete', t }];
+  }
+  if (event.inputType === 'deleteWordBackward') {
+    const cut = wordCut(typed);
+    return Array.from({ length: typed.length - cut }, () => ({ kind: 'delete' as const, t }));
+  }
+  return 'blocked';
+}
 
-    return referenceWord.split('').map((referenceChar, index) => {
-      return (
-        <Letter
-          typedChar={typedWord?.[index]}
-          referenceChar={referenceChar}
-          letterIndex={index}
-          wordIndex={wordIndex}
-          currentWordIndex={currentWordIndex}
-        />
-      );
-    });
-  };
+export function VerseTypedText({
+  verseText,
+  typed,
+  onClick,
+}: {
+  verseText: string;
+  typed: string;
+  onClick?: () => void;
+}) {
+  const parts: { kind: 'word' | 'space'; text: string; start: number }[] = [];
+  let cursor = 0;
+  while (cursor < verseText.length) {
+    if (verseText[cursor] === ' ') {
+      parts.push({ kind: 'space', text: ' ', start: cursor });
+      cursor += 1;
+      continue;
+    }
+    const start = cursor;
+    while (cursor < verseText.length && verseText[cursor] !== ' ') {
+      cursor += 1;
+    }
+    parts.push({ kind: 'word', text: verseText.slice(start, cursor), start });
+  }
 
-  return <div className="flex">{renderLetters()}</div>;
-};
+  return (
+    <div
+      id="verse-display"
+      className="flex flex-wrap items-end justify-center gap-x-3 gap-y-8 font-mono text-4xl"
+      onClick={onClick}
+    >
+      {parts.map((part) => {
+        if (part.kind === 'space') {
+          const typedChar = part.start < typed.length ? typed[part.start] : undefined;
+          return (
+            <div key={part.start} className="w-4">
+              <Letter referenceChar=" " typedChar={typedChar} />
+            </div>
+          );
+        }
+        return (
+          <div key={part.start} className="flex">
+            {[...part.text].map((referenceChar, offset) => {
+              const index = part.start + offset;
+              const typedChar = index < typed.length ? typed[index] : undefined;
+              return <Letter key={index} referenceChar={referenceChar} typedChar={typedChar} />;
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
-const VerseTyper = ({ verseText, difficulty = 0 }: VerseTyperProps) => {
-  const [typedText, setTypedText] = useState('');
+const VerseTyper = ({ verseText, onComplete }: VerseTyperProps) => {
+  const [attempt, setAttempt] = useState<Attempt>(() => startAttempt(verseText));
   const inputRef = useRef<HTMLInputElement>(null);
+  const onCompleteRef = useRef(onComplete);
+  const finishedRef = useRef(false);
+  const originRef = useRef<number | null>(null);
 
-  const currentWordIndex = useMemo(() => {
-    return typedText.split(' ').length - 1;
-  }, [typedText]);
-
-  const currentLetterIndex = useMemo(() => {
-    const typedTextArray = typedText.split(' ');
-    const currentWord = typedTextArray.length ? typedTextArray[typedTextArray.length - 1] : '';
-    return currentWord.length - 1;
-  }, [typedText]);
-
-  /* Reset the input if the reference verse changes */
   useEffect(() => {
-    setTypedText('');
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+
+  useEffect(() => {
+    setAttempt(startAttempt(verseText));
+    finishedRef.current = false;
+    originRef.current = null;
   }, [verseText]);
 
-  const verseWords = verseText.split(' ');
-  const typedWords = typedText.split(' ');
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input) {
+      return;
+    }
 
-  const handleComplete = () => {
-    // TODO: Trigger review summary
-    console.log('Verse complete!');
-  };
+    const onBeforeInput = (event: InputEvent) => {
+      event.preventDefault();
 
-  const renderText = () => {
-    return (
-      <div
-        id="verse-display"
-        className="flex flex-wrap gap-8 font-mono text-4xl"
-        onClick={() => {
-          inputRef.current?.focus();
-        }}
-      >
-        {verseWords.map((word, index) => {
-          return (
-            <Word
-              referenceWord={word}
-              typedWord={typedWords?.[index]}
-              wordIndex={index}
-              currentWordIndex={currentWordIndex}
-              currentLetterIndex={currentLetterIndex}
-            />
-          );
-        })}
-      </div>
-    );
-  };
+      setAttempt((current) => {
+        const isFirst = current.keystrokes.length === 0;
+        if (isFirst) {
+          originRef.current = performance.now();
+        }
+        const t = isFirst || originRef.current === null ? 0 : Math.round(performance.now() - originRef.current);
+        const keys = keystrokesFromInput(event, current.typed, t);
+        if (keys === 'blocked' || keys.length === 0) {
+          if (current.keystrokes.length === 0) {
+            originRef.current = null;
+          }
+          return current;
+        }
+        let next = current;
+        let justFinished: FinishedAttempt | null = null;
+        for (const keystroke of keys) {
+          const after = applyKeystroke(next, keystroke);
+          if (next.status === 'typing' && after.status === 'finished') {
+            justFinished = after;
+          }
+          next = after;
+        }
+        if (justFinished && !finishedRef.current) {
+          finishedRef.current = true;
+          const done = justFinished;
+          queueMicrotask(() => onCompleteRef.current?.(done));
+        }
+        return next;
+      });
+    };
+
+    input.addEventListener('beforeinput', onBeforeInput);
+    return () => input.removeEventListener('beforeinput', onBeforeInput);
+  }, [verseText]);
 
   return (
     <div className="mx-32 flex-grow justify-center">
-      {renderText()}
+      <VerseTypedText
+        verseText={verseText}
+        typed={attempt.typed}
+        onClick={() => inputRef.current?.focus()}
+      />
       <Input
         ref={inputRef}
         autoFocus
-        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-          switch (e.key) {
-            case 'ArrowRight':
-            case 'ArrowLeft':
-            case 'ArrowUp':
-            case 'ArrowDown':
-              e.preventDefault();
-              break;
-            default:
-              break;
+        onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>) => {
+          if (event.key.startsWith('Arrow')) {
+            event.preventDefault();
           }
         }}
-        onChange={(e) => {
-          const newlyTypedText = e.target.value;
-          setTypedText(newlyTypedText);
-
-          // check if complete
-          const newlyTypedWords = newlyTypedText.toLowerCase().split(' ');
-          const finalTypedWord = newlyTypedWords[verseWords.length - 1];
-          const finalVerseWord = verseWords[verseWords.length - 1];
-          const isComplete =
-            newlyTypedWords.length === verseWords.length && finalTypedWord === finalVerseWord;
-
-          if (isComplete) {
-            handleComplete();
-          }
-        }}
-        value={typedText}
+        onPaste={(event) => event.preventDefault()}
+        onDrop={(event) => event.preventDefault()}
+        onChange={() => undefined}
+        value=""
         className="absolute h-0 w-0 opacity-0"
       />
     </div>

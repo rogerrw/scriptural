@@ -3,24 +3,16 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../card';
 import { Button } from '../button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/component-library/dropdown-menu';
-import { EllipsisIcon, KeyboardIcon, TrashIcon } from 'lucide-react';
+import { KeyboardIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+
 interface VerseCardProps {
   verseText: string;
   verseNumber?: number;
   book?: string;
   chapterNumber?: number;
   translation?: string;
-  verseId?: number;
-  setVerseId?: React.Dispatch<React.SetStateAction<number>>;
-  openDeleteDialog?: boolean;
-  setOpenDeleteDialog?: React.Dispatch<React.SetStateAction<boolean>>;
+  actions?: React.ReactNode;
 }
 
 const VerseCard = ({
@@ -29,35 +21,9 @@ const VerseCard = ({
   book,
   chapterNumber,
   translation,
-  verseId,
-  setVerseId,
-  openDeleteDialog,
-  setOpenDeleteDialog,
+  actions,
 }: VerseCardProps) => {
   const router = useRouter();
-
-  const VerseCardActions = () => {
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost">
-            <EllipsisIcon />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuItem
-            onClick={() => {
-              setVerseId?.(verseId || 0);
-              setOpenDeleteDialog?.(!openDeleteDialog);
-            }}
-          >
-            <TrashIcon />
-            Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  };
 
   return (
     <Card className="border-none bg-transparent text-gray-700 transition-colors dark:text-gray-300 dark:hover:bg-gray-900">
@@ -74,7 +40,6 @@ const VerseCard = ({
           </CardContent>
         </div>
 
-        {/* Action area */}
         <div className="flex flex-row gap-2 pr-4">
           <Button
             variant="ghost"
@@ -84,8 +49,7 @@ const VerseCard = ({
           >
             <KeyboardIcon />
           </Button>
-          <VerseCardActions />
-          {verseId && <VerseCardActions />}
+          {actions}
         </div>
       </div>
     </Card>
