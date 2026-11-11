@@ -70,7 +70,7 @@
     "prettier": "^3.4.2",
     "prettier-plugin-tailwindcss": "^0.6.9",
     "prisma": "^6.2.0",
-    "storybook": "^8.3.6"
+    "storybook": "^8.6.19"
   },
   "engines": {
     "node": "26.x"
