@@ -80,7 +80,7 @@ const PrivateHeaderActions = () => {
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem>
-            <Link href="/dashboard" className="flex w-full cursor-pointer items-center gap-2">
+            <Link href="/account" className="flex w-full cursor-pointer items-center gap-2">
               <SettingsIcon />
               Account settings
             </Link>
