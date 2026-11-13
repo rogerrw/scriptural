@@ -1,4 +1,5 @@
 const WEEK_START = 1;
+const WEEKS_SHOWN = 53;
 const LABELED_WEEKDAYS: readonly number[] = [1, 3, 5];
 const WEEKDAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
 const HEAT_LEVELS = [0, 1, 2, 3, 4] as const;
@@ -134,12 +135,6 @@ function addDays(date: LocalDate, amount: number): LocalDate {
   );
 }
 
-function minusOneYear(date: LocalDate): LocalDate {
-  const { year, month, day } = partsOf(date);
-  const previous = year - 1;
-  return localDateFromParts(previous, month, Math.min(day, daysInMonth(previous, month)));
-}
-
 function utcDay(date: LocalDate): Date {
   const { year, month, day } = partsOf(date);
   return new Date(Date.UTC(year, month - 1, day));
@@ -158,18 +153,14 @@ function asWeek<T>(slots: readonly T[]): readonly [T, T, T, T, T, T, T] {
   return [slots[0], slots[1], slots[2], slots[3], slots[4], slots[5], slots[6]];
 }
 
-// Monday of the week containing the local date one year ago, through Sunday of the current week.
+// Fifty-three Monday-Sunday weeks, through Sunday of the current week.
 function weeksOfPastYear(today: LocalDate): readonly DateWeek[] {
-  const opened = minusOneYear(today);
-  const monday = addDays(opened, -weekdayRow(opened));
   const sunday = addDays(today, 6 - weekdayRow(today));
+  const monday = addDays(sunday, -(WEEKS_SHOWN * 7 - 1));
 
   const slots: LocalDate[] = [];
-  for (let date = monday; date <= sunday; date = addDays(date, 1)) {
-    slots.push(date);
-  }
-  if (slots.length === 0 || slots.length % 7 !== 0) {
-    throw new Error(`Past year is not a whole number of weeks: ${slots.length} days`);
+  for (let index = 0; index < WEEKS_SHOWN * 7; index += 1) {
+    slots.push(addDays(monday, index));
   }
 
   const weeks: DateWeek[] = [];

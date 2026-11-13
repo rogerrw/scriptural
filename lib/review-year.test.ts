@@ -60,9 +60,9 @@ test('an unusable time zone is rejected', () => {
 test('the query window brackets the shown weeks with two days of slack', () => {
   const query = reviewYearQuery('America/Los_Angeles', UTC_MIDYEAR);
   const days = dayCells(query.build([]));
-  assert.equal(days[0].date, '2025-06-09');
+  assert.equal(days[0].date, '2025-06-16');
   assert.equal(days[days.length - 1].date, '2026-06-21');
-  assert.equal(query.start.toISOString(), '2025-06-07T00:00:00.000Z');
+  assert.equal(query.start.toISOString(), '2025-06-14T00:00:00.000Z');
   assert.equal(query.end.toISOString(), '2026-06-23T00:00:00.000Z');
 });
 
@@ -120,12 +120,12 @@ test('one instant lands on different local days either side of the date line', (
   assert.equal(cellFor(honolulu, '2026-03-01').tooltip, '1 verse on Mar 1, 2026');
 });
 
-test('the grid runs from the Monday of one year ago through Sunday of this week', () => {
+test('the grid is 53 Monday-Sunday weeks through Sunday of this week', () => {
   const year = reviewYearQuery('UTC', UTC_MIDYEAR).build([]);
   const days = dayCells(year);
-  assert.equal(days.length, 54 * 7);
-  assert.equal(year.weeks.length, 54);
-  assert.equal(days[0].date, '2025-06-09');
+  assert.equal(days.length, 53 * 7);
+  assert.equal(year.weeks.length, 53);
+  assert.equal(days[0].date, '2025-06-16');
   assert.equal(days[days.length - 1].date, '2026-06-21');
   assert.equal(utcWeekday(days[0].date), 1);
   assert.equal(utcWeekday(days[days.length - 1].date), 0);
@@ -166,9 +166,10 @@ test('a Friday still shows Saturday and Sunday of the current week', () => {
   assert.equal(cellFor(year, '2026-11-15').tooltip, '1 verse on Nov 15, 2026');
 });
 
-test('a leap-day anniversary opens on the Monday of the previous February 28', () => {
+test('a leap day still fills 53 weeks through Sunday', () => {
   const year = reviewYearQuery('UTC', new Date('2024-02-29T12:00:00.000Z')).build([]);
   const days = dayCells(year);
+  assert.equal(year.weeks.length, 53);
   assert.equal(days[0].date, '2023-02-27');
   assert.equal(days[days.length - 1].date, '2024-03-03');
   assert.equal(cellFor(year, '2024-02-29').tooltip, 'No verses on Feb 29, 2024');
