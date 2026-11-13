@@ -3,14 +3,16 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../card';
 import { Button } from '../button';
-import { EllipsisIcon, KeyboardIcon } from 'lucide-react';
+import { KeyboardIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+
 interface VerseCardProps {
   verseText: string;
   verseNumber?: number;
   book?: string;
   chapterNumber?: number;
   translation?: string;
+  actions?: React.ReactNode;
 }
 
 const VerseCard = ({
@@ -19,6 +21,7 @@ const VerseCard = ({
   book,
   chapterNumber,
   translation,
+  actions,
 }: VerseCardProps) => {
   const router = useRouter();
 
@@ -37,7 +40,6 @@ const VerseCard = ({
           </CardContent>
         </div>
 
-        {/* Action area */}
         <div className="flex flex-row gap-2 pr-4">
           <Button
             variant="ghost"
@@ -47,9 +49,7 @@ const VerseCard = ({
           >
             <KeyboardIcon />
           </Button>
-          <Button variant="ghost">
-            <EllipsisIcon />
-          </Button>
+          {actions}
         </div>
       </div>
     </Card>
