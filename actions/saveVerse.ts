@@ -48,6 +48,6 @@ export async function saveVerses(params: {
   });
 
   return {
-    success: 'Verse saved in collection!',
+    success: 'Verse saved.',
   };
 }
