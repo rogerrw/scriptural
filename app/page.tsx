@@ -1,4 +1,5 @@
 import { auth } from '@/auth';
+import { ReviewYearHeatmap } from '@/component-library/review-year-grid';
 import prisma from '@/prisma';
 
 const HomePage = async () => {
@@ -17,6 +18,7 @@ const HomePage = async () => {
     <div className="fadein mx-8">
       <p>Practiced verses: {practicedVerses}</p>
       <p>Completed review sessions: {completedReviewSessions}</p>
+      <ReviewYearHeatmap />
     </div>
   );
 };
