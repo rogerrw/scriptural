@@ -60,7 +60,7 @@ const DeleteVerseFromSetButton = ({ verseSetVerseId }: { verseSetVerseId: number
           <DialogHeader>
             <DialogTitle>Remove from set</DialogTitle>
             <DialogDescription>
-              This removes the verse from the set. It stays in your collection.
+              This removes the verse from the set.
             </DialogDescription>
           </DialogHeader>
           <FormError message={error} />
