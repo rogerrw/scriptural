@@ -45,7 +45,9 @@ export function ReviewYearHeatmap() {
 
   if (load.status === 'failed') {
     return (
-      <div className="mt-8 h-[140px] text-xs text-muted-foreground">Could not load this year.</div>
+      <div className="mt-8 h-[140px] text-xs text-muted-foreground">
+        Could not load the past year.
+      </div>
     );
   }
 
@@ -56,7 +58,7 @@ export function ReviewYearHeatmap() {
       <TooltipProvider delayDuration={100} skipDelayDuration={0}>
         <div
           role="group"
-          aria-label={`Verse reviews in ${year.year}`}
+          aria-label="Verse reviews over the past year"
           className="inline-grid gap-[3px]"
           style={{
             gridTemplateColumns: `32px repeat(${year.weeks.length}, 11px)`,
@@ -74,7 +76,7 @@ export function ReviewYearHeatmap() {
           ))}
           {year.months.map((month) => (
             <span
-              key={month.name}
+              key={`${month.name}-${month.weekIndex}`}
               className="whitespace-nowrap text-xs leading-none text-muted-foreground"
               style={{ gridColumn: month.weekIndex + 2, gridRow: 1 }}
             >
@@ -84,9 +86,6 @@ export function ReviewYearHeatmap() {
           {year.weeks.map((week, weekIndex) =>
             week.map((slot, dayIndex) => {
               const placement = { gridColumn: weekIndex + 2, gridRow: dayIndex + 2 };
-              if (slot.kind === 'outside') {
-                return <span key={`outside-${weekIndex}-${dayIndex}`} style={placement} />;
-              }
               return (
                 // The wrapper is the grid item, so the square keeps its cell whatever the tooltip root emits.
                 <div key={slot.date} style={placement}>

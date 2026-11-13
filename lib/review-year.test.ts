@@ -11,7 +11,12 @@ function rowsAt(rows: readonly (readonly [number, string])[]): ReviewInstant[] {
 }
 
 function dayCells(year: ReviewYear) {
-  return year.weeks.flat().filter((slot) => slot.kind === 'day');
+  return year.weeks.flat();
+}
+
+function utcWeekday(date: string) {
+  const [year, month, day] = date.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
 }
 
 function cellFor(year: ReviewYear, date: string) {
@@ -52,28 +57,32 @@ test('an unusable time zone is rejected', () => {
   });
 });
 
-test('the Pacific window brackets the local year by a year on each side', () => {
+test('the query window brackets the shown weeks with two days of slack', () => {
   const query = reviewYearQuery('America/Los_Angeles', UTC_MIDYEAR);
-  assert.equal(query.build([]).year, 2026);
-  assert.equal(query.start.toISOString(), '2025-01-01T00:00:00.000Z');
-  assert.equal(query.end.toISOString(), '2028-01-01T00:00:00.000Z');
+  const days = dayCells(query.build([]));
+  assert.equal(days[0].date, '2025-06-09');
+  assert.equal(days[days.length - 1].date, '2026-06-21');
+  assert.equal(query.start.toISOString(), '2025-06-07T00:00:00.000Z');
+  assert.equal(query.end.toISOString(), '2026-06-23T00:00:00.000Z');
 });
 
-test('a Pacific instant before local midnight still builds the old year', () => {
+test('a Pacific instant before local midnight counts on the previous local day', () => {
   const query = reviewYearQuery('America/Los_Angeles', new Date('2026-01-01T07:30:00.000Z'));
   const year = query.build(rowsAt([[1, '2026-01-01T07:30:00.000Z']]));
-  assert.equal(year.year, 2025);
-  const active = activeCells(year);
-  assert.equal(active.length, 1);
-  assert.equal(active[0].tooltip, '1 verse on Dec 31, 2025');
+  const days = dayCells(year);
+  assert.equal(days[0].date, '2024-12-30');
+  assert.equal(days[days.length - 1].date, '2026-01-04');
+  assert.equal(cellFor(year, '2025-12-31').tooltip, '1 verse on Dec 31, 2025');
 });
 
-test('a Pacific instant after local midnight builds the new year', () => {
+test('a Pacific instant after local midnight counts on the new local day', () => {
   const query = reviewYearQuery('America/Los_Angeles', new Date('2026-01-01T08:30:00.000Z'));
 
   const beforeMidnight = query.build(rowsAt([[1, '2026-01-01T07:30:00.000Z']]));
-  assert.equal(beforeMidnight.year, 2026);
-  assert.equal(activeCells(beforeMidnight).length, 0);
+  const days = dayCells(beforeMidnight);
+  assert.equal(days[0].date, '2024-12-30');
+  assert.equal(days[days.length - 1].date, '2026-01-04');
+  assert.equal(cellFor(beforeMidnight, '2025-12-31').tooltip, '1 verse on Dec 31, 2025');
   assert.equal(cellFor(beforeMidnight, '2026-01-01').tooltip, 'No verses on Jan 1, 2026');
 
   const afterMidnight = query.build(rowsAt([[1, '2026-01-01T08:30:00.000Z']]));
@@ -111,24 +120,58 @@ test('one instant lands on different local days either side of the date line', (
   assert.equal(cellFor(honolulu, '2026-03-01').tooltip, '1 verse on Mar 1, 2026');
 });
 
-test('UTC 2026 is 365 day cells across 53 Monday-first weeks', () => {
+test('the grid runs from the Monday of one year ago through Sunday of this week', () => {
   const year = reviewYearQuery('UTC', UTC_MIDYEAR).build([]);
-  assert.equal(dayCells(year).length, 365);
+  const days = dayCells(year);
+  assert.equal(days.length, 54 * 7);
+  assert.equal(year.weeks.length, 54);
+  assert.equal(days[0].date, '2025-06-09');
+  assert.equal(days[days.length - 1].date, '2026-06-21');
+  assert.equal(utcWeekday(days[0].date), 1);
+  assert.equal(utcWeekday(days[days.length - 1].date), 0);
+  assert.deepEqual(
+    year.weeks[year.weeks.length - 1].map((slot) => slot.date),
+    [
+      '2026-06-15',
+      '2026-06-16',
+      '2026-06-17',
+      '2026-06-18',
+      '2026-06-19',
+      '2026-06-20',
+      '2026-06-21',
+    ],
+  );
+});
+
+test('a Friday still shows Saturday and Sunday of the current week', () => {
+  const year = reviewYearQuery('UTC', new Date('2026-11-13T12:00:00.000Z')).build(
+    rowsAt([
+      [1, '2025-11-09T12:00:00.000Z'],
+      [2, '2025-11-10T12:00:00.000Z'],
+      [3, '2026-11-15T12:00:00.000Z'],
+    ]),
+  );
+  const days = dayCells(year);
   assert.equal(year.weeks.length, 53);
-
-  const first = year.weeks[0];
-  assert.deepEqual(
-    first.map((slot) => slot.kind),
-    ['outside', 'outside', 'outside', 'day', 'day', 'day', 'day'],
+  assert.equal(days[0].date, '2025-11-10');
+  assert.equal(days[days.length - 1].date, '2026-11-15');
+  assert.equal(utcWeekday(days[0].date), 1);
+  assert.equal(utcWeekday(days[days.length - 1].date), 0);
+  assert.equal(
+    days.some((slot) => slot.date === '2025-11-09'),
+    false,
   );
-  assert.equal(cellFor(year, '2026-01-01'), first[3]);
+  assert.equal(cellFor(year, '2025-11-10').tooltip, '1 verse on Nov 10, 2025');
+  assert.equal(cellFor(year, '2026-11-14').tooltip, 'No verses on Nov 14, 2026');
+  assert.equal(cellFor(year, '2026-11-15').tooltip, '1 verse on Nov 15, 2026');
+});
 
-  const last = year.weeks[52];
-  assert.deepEqual(
-    last.slice(3).map((slot) => slot.kind),
-    ['day', 'outside', 'outside', 'outside'],
-  );
-  assert.equal(cellFor(year, '2026-12-31'), last[3]);
+test('a leap-day anniversary opens on the Monday of the previous February 28', () => {
+  const year = reviewYearQuery('UTC', new Date('2024-02-29T12:00:00.000Z')).build([]);
+  const days = dayCells(year);
+  assert.equal(days[0].date, '2023-02-27');
+  assert.equal(days[days.length - 1].date, '2024-03-03');
+  assert.equal(cellFor(year, '2024-02-29').tooltip, 'No verses on Feb 29, 2024');
 });
 
 test('UTC 2024 includes the leap day', () => {
@@ -170,17 +213,28 @@ test('the gutter labels Monday, Wednesday, and Friday', () => {
   assert.deepEqual(year.weekdayLabels, ['Mon', null, 'Wed', null, 'Fri', null, null]);
 });
 
-test('UTC 2026 month labels run Jan through Dec on rising week columns', () => {
-  const year = reviewYearQuery('UTC', UTC_MIDYEAR).build([]);
+test('month labels follow the rolling year and skip a cramped opening month', () => {
+  const midyear = reviewYearQuery('UTC', UTC_MIDYEAR).build([]);
   assert.deepEqual(
-    year.months.map((month) => month.name),
-    ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    midyear.months.map((month) => month.name),
+    ['Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
   );
-  assert.equal(year.months[0].weekIndex, 0);
-  for (let index = 1; index < year.months.length; index += 1) {
-    const month = year.months[index];
-    assert.ok(month.weekIndex > year.months[index - 1].weekIndex, `${month.name} sits too early`);
+  assert.equal(midyear.months[0].weekIndex, 0);
+  for (let index = 1; index < midyear.months.length; index += 1) {
+    const month = midyear.months[index];
+    assert.ok(
+      month.weekIndex >= midyear.months[index - 1].weekIndex + 2,
+      `${month.name} sits too close`,
+    );
   }
+
+  const sameColumn = reviewYearQuery('UTC', new Date('2027-01-01T12:00:00.000Z')).build([]);
+  assert.equal(sameColumn.months[0].name, 'Jan');
+  assert.equal(sameColumn.months[0].weekIndex, 0);
+
+  const nextColumn = reviewYearQuery('UTC', new Date('2026-12-22T12:00:00.000Z')).build([]);
+  assert.equal(nextColumn.months[0].name, 'Jan');
+  assert.equal(nextColumn.months[0].weekIndex, 1);
 });
 
 test('every legend level has a color in both token blocks of global.css', () => {
