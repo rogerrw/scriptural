@@ -32,7 +32,7 @@ const CreateVerseSetDialog = () => {
       name: '',
     },
   });
-  const collectionName = form.watch('name');
+  const setName = form.watch('name');
 
   const handleSubmit = (values: z.infer<typeof VerseSetSchema>) => {
     startTransition(() => {
@@ -63,8 +63,8 @@ const CreateVerseSetDialog = () => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)}>
             <DialogHeader>
-              <DialogTitle>Create Collection</DialogTitle>
-              <DialogDescription>Give a name to your new collection.</DialogDescription>
+              <DialogTitle>Create set</DialogTitle>
+              <DialogDescription>Give a name to your new set.</DialogDescription>
 
               <FormField
                 control={form.control}
@@ -72,7 +72,7 @@ const CreateVerseSetDialog = () => {
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel>Collection Name</FormLabel>
+                      <FormLabel>Set name</FormLabel>
                       <FormControl>
                         <Input {...field} disabled={isPending} id="name" />
                       </FormControl>
@@ -82,7 +82,7 @@ const CreateVerseSetDialog = () => {
               />
             </DialogHeader>
             <DialogFooter>
-              <Button type="submit" disabled={!collectionName} className="mt-4">
+              <Button type="submit" disabled={!setName} className="mt-4">
                 Submit
               </Button>
             </DialogFooter>
