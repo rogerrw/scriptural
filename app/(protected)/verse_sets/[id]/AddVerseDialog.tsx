@@ -27,6 +27,7 @@ import VerseCard from '@/component-library/verse-card';
 
 import { addVerseToSet } from '@/actions/addVerseToSet';
 import { fetchVerse } from '@/actions/fetchVerse';
+import { FormError } from '@/app/ui/formMessage';
 import { books, translations } from '@/constants/bible';
 import { Label } from '@/component-library/label';
 
@@ -48,6 +49,7 @@ interface IVerseResult {
 
 const AddVerseDialog = ({ verseSetId }: AddVerseDialogProps) => {
   const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | undefined>();
   const [isPending, startTransition] = useTransition();
 
   const [fetchedVerse, setFetchedVerse] = useState<IVerseResult | undefined>();
@@ -57,6 +59,7 @@ const AddVerseDialog = ({ verseSetId }: AddVerseDialogProps) => {
   const [translation, setTranslation] = useState<string>('ESV');
 
   const handleSubmit = () => {
+    setError(undefined);
     startTransition(async () => {
       const data = await addVerseToSet({
         book: book || '',
@@ -66,12 +69,10 @@ const AddVerseDialog = ({ verseSetId }: AddVerseDialogProps) => {
         verseSetId,
       });
       if (data?.error) {
-        console.error(data.error);
-        // TODO: Add error toast
-      } else if (data?.success) {
-        console.log(data.success);
-        // TODO: Add success toast
-
+        setError(data.error);
+        return;
+      }
+      if (data?.success) {
         toggleDialog(false);
       }
     });
@@ -83,6 +84,7 @@ const AddVerseDialog = ({ verseSetId }: AddVerseDialogProps) => {
     setVerseNumber(undefined);
     setTranslation('ESV');
     setFetchedVerse(undefined);
+    setError(undefined);
   };
 
   useEffect(() => {
@@ -182,6 +184,7 @@ const AddVerseDialog = ({ verseSetId }: AddVerseDialogProps) => {
             />
           </div>
         )}
+        <FormError message={error} />
         <DialogFooter>
           <Button type="button" variant="ghost" onClick={() => toggleDialog(false)}>
             Cancel

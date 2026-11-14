@@ -1,4 +1,5 @@
 'use server';
+import { revalidatePath } from 'next/cache';
 import prisma from '@/prisma';
 import { z } from 'zod';
 import { auth } from '@/auth';
@@ -46,6 +47,8 @@ export async function addVerseToSet(params: z.infer<typeof AddVerseSchema>) {
         userVerseId: userVerse.id,
       },
     });
+
+    revalidatePath(`/verse_sets/${verseSetId}`);
 
     return {
       success: 'Verse added to set successfully',
