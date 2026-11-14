@@ -1,8 +1,11 @@
 import Link from 'next/link';
 
+import { auth } from '@/auth';
 import StaticContent from '@/component-library/static-content';
 
-const AboutPage = () => {
+const AboutPage = async () => {
+  const session = await auth();
+
   return (
     <StaticContent title="About Scriptural">
       <section>
@@ -42,12 +45,14 @@ const AboutPage = () => {
         </p>
       </section>
 
-      <section>
-        <h2>Create an account</h2>
-        <p>
-          <Link href="/auth/signin">Create your free account</Link> and memorize a verse.
-        </p>
-      </section>
+      {session ? null : (
+        <section>
+          <h2>Create an account</h2>
+          <p>
+            <Link href="/auth/signin">Create your free account</Link> and memorize a verse.
+          </p>
+        </section>
+      )}
     </StaticContent>
   );
 };
