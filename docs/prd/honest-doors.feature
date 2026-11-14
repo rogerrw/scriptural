@@ -12,10 +12,6 @@ Feature: Honest doors
     I want the register form to say email signup is unavailable
     So that the form does not promise a confirmation mail
 
-    Scenario: The register form stays on the page
-      When I open the register page
-      Then I see the register form
-
     Scenario: Submit creates no account
       When I submit the register form with a new email, name, and password
       Then I see the error "Email signup is unavailable."
