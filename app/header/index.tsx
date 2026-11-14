@@ -13,8 +13,8 @@ const Header = async () => {
           src="/logo.svg"
           width={276}
           height={60}
-          alt="Picture of the author"
-          className="max-h-12"
+          alt="Scriptural Logo"
+          className="h-12 w-auto"
         />
       </Link>
       {session ? (
