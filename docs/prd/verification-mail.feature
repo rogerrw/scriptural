@@ -5,7 +5,7 @@
 
 Feature: Verification mail
   A new password account gets a real confirmation message.
-  The person confirms from a button on the link.
+  Opening the link confirms the email.
   A wrong password never sends mail.
 
   Rule: Create an account only when the message is accepted
@@ -130,35 +130,28 @@ Feature: Verification mail
       Then I am signed in
       And no confirmation message is recorded
 
-  Rule: Confirm when the button is submitted
+  Rule: Confirm when the link opens
     As a person who received the confirmation message
-    I want the link to wait for my button
-    So that opening the link does not consume it
+    I want the link to confirm my email
+    So that I can log in
 
-    Scenario: Opening a valid link does not confirm
-      Given "ada@example.com" has an unexpired verification token
-      When I open the confirmation link for that token
-      Then I see the button "Confirm email"
-      And I do not see "Email confirmed."
-      And "ada@example.com" has no emailVerified
-      And that verification token exists
-
-    Scenario: The confirm button sets emailVerified and does not sign me in
+    Scenario: Opening a valid link confirms and shows log in
       Given "ada@example.com" has an unexpired verification token
       And I am not signed in
       When I open the confirmation link for that token
-      And I submit "Confirm email"
-      Then I see "Email confirmed."
+      Then I see "Email confirmed! You may now log in"
+      And I see the button "Log in"
+      And I do not see the button "Confirm email"
       And I am not signed in
       And "ada@example.com" has emailVerified set
       And that verification token is gone
 
-    Scenario: A second confirm finds no token
+    Scenario: A second open finds no token
       Given "ada@example.com" has an unexpired verification token
       When I open the confirmation link for that token
-      And I submit "Confirm email"
-      And I submit "Confirm email"
+      And I open the confirmation link for that token
       Then I see "This link is not valid."
+      And I do not see the button "Log in"
       And "ada@example.com" has emailVerified set
 
     Scenario: A signed-in person can open the link
@@ -166,15 +159,8 @@ Feature: Verification mail
       And "ada@example.com" has an unexpired verification token
       When I open the confirmation link for that token
       Then I am on "/auth/verify"
-      And I see the button "Confirm email"
-      And I am still signed in
-
-    Scenario: Confirming while signed in leaves the session
-      Given I am signed in
-      And "ada@example.com" has an unexpired verification token
-      When I open the confirmation link for that token
-      And I submit "Confirm email"
-      Then I see "Email confirmed."
+      And I see "Email confirmed! You may now log in"
+      And I see the button "Log in"
       And I am still signed in
       And "ada@example.com" has emailVerified set
 
