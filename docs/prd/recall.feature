@@ -1,5 +1,5 @@
 # Acceptance stories for docs/prd/recall.md
-# The sitting, the due time, and the grade formula belong to daily-review.feature.
+# The review session, the due time, and the grade formula belong to daily-review.feature.
 
 Feature: Recall
   Daily Review shows a passage in learn mode or recall mode.

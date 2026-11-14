@@ -12,6 +12,7 @@ interface VerseCardProps {
   book?: string;
   chapterNumber?: number;
   translation?: string;
+  reviewHref?: string;
   actions?: React.ReactNode;
 }
 
@@ -21,6 +22,7 @@ const VerseCard = ({
   book,
   chapterNumber,
   translation,
+  reviewHref = '/review',
   actions,
 }: VerseCardProps) => {
   const router = useRouter();
@@ -44,7 +46,7 @@ const VerseCard = ({
           <Button
             variant="ghost"
             onClick={() => {
-              router.push(`/review`);
+              router.push(reviewHref);
             }}
           >
             <KeyboardIcon />

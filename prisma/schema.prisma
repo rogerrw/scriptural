@@ -12,6 +12,8 @@ model User {
   email          String          @unique
   name           String          @unique
   experience     Int             @default(0)
+  reviewLimit    Int             @default(10)
+  timezone       String?
   password       String?
   emailVerified  DateTime?       @map("email_verified")
   image          String?
@@ -55,6 +57,7 @@ model UserVerse {
   endingVerse      Int?
   translation      String
   verseText        String
+  nextReviewAt     DateTime?         @db.Timestamptz(3)
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   userVerseReviews UserVerseReview[]
@@ -88,11 +91,13 @@ model UserVerseReview {
 model ReviewSession {
   id               String            @id @default(cuid())
   userId           String
+  endedAt          DateTime?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   userVerseReviews UserVerseReview[]
   user             User              @relation(fields: [userId], references: [id])
 
+  @@index([userId, createdAt])
   @@map("review_sessions")
 }
 
