@@ -2,16 +2,9 @@ import { auth } from '@/auth';
 import Link from 'next/link';
 import Image from 'next/image';
 
-import { Button } from '@/component-library/button';
 import PrivateHeaderActions from './PrivateHeaderActions';
 const Header = async () => {
   const session = await auth();
-
-  const renderPublicHeaderActions = () => (
-    <Button asChild className="bg-white text-black">
-      <Link href="/auth/signin">Login / Sign Up</Link>
-    </Button>
-  );
 
   return (
     <header className="fadein mx-8 flex items-center justify-between p-8">
@@ -24,9 +17,11 @@ const Header = async () => {
           className="max-h-12"
         />
       </Link>
-      <div className="flex items-center gap-2">
-        {!!session ? <PrivateHeaderActions /> : renderPublicHeaderActions()}
-      </div>
+      {session ? (
+        <div className="flex items-center gap-2">
+          <PrivateHeaderActions />
+        </div>
+      ) : null}
     </header>
   );
 };
