@@ -1,6 +1,6 @@
 # Honest doors
 
-This document is a reference for sign-in copy, the post-login destination, and the verse list after an add. The Gherkin stories are in [honest-doors.feature](honest-doors.feature). The sitting itself is [Daily review](daily-review.md).
+This document is a reference for sign-in copy, the post-login destination, and the verse list after an add. The Gherkin stories are in [honest-doors.feature](honest-doors.feature). The review session itself is [Daily review](daily-review.md).
 
 ## Current behavior
 

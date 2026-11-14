@@ -1,6 +1,7 @@
 'use client';
 
 import { Prisma } from '@prisma/client';
+import Link from 'next/link';
 import { Button } from '@/component-library/button';
 import { KeyboardIcon } from 'lucide-react';
 import VerseCard from '@/component-library/verse-card';
@@ -21,9 +22,14 @@ const VerseSetContent = ({ verseSetId, verseSet }: VerseSetContentProps) => {
     <div className="fadein flex flex-col gap-8 px-12 py-4">
       <h1 className="text-3xl font-bold">{verseSet.name}</h1>
       <div className="flex flex-row gap-2">
-        <Button>
-          <KeyboardIcon className="h-4 w-4" />
-          Review
+        <Button asChild>
+          <Link
+            href={`/review?set=${encodeURIComponent(verseSet.name)}`}
+            className="flex items-center gap-2"
+          >
+            <KeyboardIcon className="h-4 w-4" />
+            Review
+          </Link>
         </Button>
         <AddVerseDialog verseSetId={verseSetId} />
       </div>
@@ -36,6 +42,7 @@ const VerseSetContent = ({ verseSetId, verseSet }: VerseSetContentProps) => {
             chapterNumber={verse.userVerse.chapter}
             verseNumber={verse.userVerse.startingVerse}
             translation={verse.userVerse.translation}
+            reviewHref={`/review?setId=${verseSetId}&startId=${verse.userVerse.id}`}
             actions={<DeleteVerseFromSetButton verseSetVerseId={verse.id} />}
           />
         ))}

@@ -1,9 +1,13 @@
 'use server';
 
+import { randomUUID } from 'node:crypto';
 import { Prisma, type PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { auth } from '@/auth';
 import prisma from '@/prisma';
+import { nextReviewAt } from '@/lib/nextReviewAt';
+import { openReviewSession, recordReviewSessionAttempts } from '@/lib/reviewSession';
+import { accountTimeZone } from '@/lib/reviewSettings';
 import {
   gradeAttempt,
   replayKeystrokes,
@@ -126,7 +130,11 @@ export async function recordAttempt(
     return await prisma.$transaction(async (tx) => {
       const existing = await tx.userVerseReview.findUnique({
         where: { attemptId: data.attemptId },
-        include: { userVerse: { select: { userId: true, id: true, book: true, chapter: true, startingVerse: true } } },
+        include: {
+          userVerse: {
+            select: { userId: true, id: true, book: true, chapter: true, startingVerse: true },
+          },
+        },
       });
       if (existing) {
         if (existing.userVerse.userId !== userId) {
@@ -161,7 +169,7 @@ export async function recordAttempt(
         return { error: 'The verse is not finished.' };
       }
 
-      const [mean, best] = await Promise.all([
+      const [mean, best, account] = await Promise.all([
         tx.userVerseReview.aggregate({
           where: { userVerse: { userId } },
           _avg: { cpm: true },
@@ -178,6 +186,7 @@ export async function recordAttempt(
           },
           _max: { grade: true },
         }),
+        tx.user.findUnique({ where: { id: userId }, select: { timezone: true } }),
       ]);
 
       const score = gradeAttempt(finished, {
@@ -198,22 +207,48 @@ export async function recordAttempt(
           },
         }));
 
-      const reviewSession = await tx.reviewSession.create({
-        data: { userId },
+      const latest = await tx.reviewSession.findFirst({
+        where: { userId },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        select: { id: true, endedAt: true },
       });
+      const reviewSession = openReviewSession({
+        latestSession: latest ? { ...latest, finishedVerseIds: [] } : null,
+        newSessionId: randomUUID(),
+      });
+      if (!reviewSession.resumed) {
+        await tx.reviewSession.create({ data: { id: reviewSession.sessionId, userId } });
+      }
+
+      const [attachment] = recordReviewSessionAttempts({
+        sessionId: reviewSession.sessionId,
+        verseIds: [userVerse.id],
+      });
+      const reviewedAt = new Date();
 
       await tx.userVerseReview.create({
         data: {
           attemptId: data.attemptId,
-          userVerseId: userVerse.id,
-          reviewSessionId: reviewSession.id,
-          reviewedAt: new Date(),
+          userVerseId: attachment.userVerseId,
+          reviewSessionId: attachment.sessionId,
+          reviewedAt,
           difficulty: score.difficulty,
           grade: score.grade,
           errorCount: score.errorCount,
           elapsedMs: score.elapsedMs,
           cpm: score.cpm,
           keystrokes: data.keystrokes,
+        },
+      });
+
+      await tx.userVerse.update({
+        where: { id: userVerse.id },
+        data: {
+          nextReviewAt: nextReviewAt({
+            grade: score.grade,
+            now: reviewedAt,
+            timeZone: accountTimeZone(account?.timezone ?? null),
+          }),
         },
       });
 
@@ -224,7 +259,11 @@ export async function recordAttempt(
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
       const existing = await prisma.userVerseReview.findUnique({
         where: { attemptId: data.attemptId },
-        include: { userVerse: { select: { userId: true, id: true, book: true, chapter: true, startingVerse: true } } },
+        include: {
+          userVerse: {
+            select: { userId: true, id: true, book: true, chapter: true, startingVerse: true },
+          },
+        },
       });
       if (!existing || existing.userVerse.userId !== userId) {
         return { error: 'Invalid attempt' };

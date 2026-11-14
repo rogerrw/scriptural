@@ -1,7 +1,6 @@
 'use server';
 
 import prisma from '@/prisma';
-import { fetchVerse } from './fetchVerse';
 
 export async function fetchVerseSet(id: string) {
   const verseSet = await prisma.verseSet.findUnique({
@@ -10,6 +9,7 @@ export async function fetchVerseSet(id: string) {
     },
     include: {
       verses: {
+        orderBy: { id: 'asc' },
         include: {
           userVerse: true,
         },
