@@ -19,9 +19,8 @@ function verse(overrides: Partial<DueVerse> & Pick<DueVerse, 'id' | 'reference'>
 }
 
 test('no review session starts a new one', () => {
-  const started = openReviewSession({ latestSession: null, newSessionId: 'review-session-1' });
+  const started = openReviewSession({ latestSession: null });
   assert.equal(started.resumed, false);
-  assert.equal(started.sessionId, 'review-session-1');
   assert.deepEqual(started.finishedVerseIds, []);
 });
 
@@ -32,7 +31,6 @@ test('reload keeps the open session and drops verses already finished', () => {
       endedAt: null,
       finishedVerseIds: [1],
     },
-    newSessionId: 'review-session-2',
   });
   assert.equal(again.resumed, true);
   assert.equal(again.sessionId, 'review-session-1');
@@ -70,9 +68,7 @@ test('a ReviewSession with an end time is not resumed', () => {
       endedAt: new Date('2026-11-16T16:00:00-08:00'),
       finishedVerseIds: [1, 2],
     },
-    newSessionId: 'review-session-2',
   });
   assert.equal(next.resumed, false);
-  assert.equal(next.sessionId, 'review-session-2');
   assert.deepEqual(next.finishedVerseIds, []);
 });

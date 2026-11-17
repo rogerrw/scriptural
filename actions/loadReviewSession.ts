@@ -1,6 +1,5 @@
 'use server';
 
-import { randomUUID } from 'node:crypto';
 import { auth } from '@/auth';
 import prisma from '@/prisma';
 import { selectCardReviewSession, selectDueReviewSession } from '@/lib/dueVerses';
@@ -100,7 +99,6 @@ export async function loadReviewSession(request: ReviewSessionRequest): Promise<
           finishedVerseIds: latest.userVerseReviews.map((review) => review.userVerseId),
         }
       : null,
-    newSessionId: randomUUID(),
   });
 
   const finished: readonly FinishedVerse[] = reviewSession.resumed
@@ -133,16 +131,16 @@ export async function loadReviewSession(request: ReviewSessionRequest): Promise<
         });
 
   if ('empty' in remaining) {
-    return finished.length > 0
+    return finished.length > 0 && reviewSession.resumed
       ? { status: 'ready', sessionId: reviewSession.sessionId, verses: [], finished }
       : remaining.empty;
   }
 
-  if (!reviewSession.resumed) {
-    await prisma.reviewSession.create({ data: { id: reviewSession.sessionId, userId } });
-  }
+  const sessionId = reviewSession.resumed
+    ? reviewSession.sessionId
+    : (await prisma.reviewSession.create({ data: { userId } })).id;
 
-  return { status: 'ready', sessionId: reviewSession.sessionId, verses: remaining.verses, finished };
+  return { status: 'ready', sessionId, verses: remaining.verses, finished };
 }
 
 async function dueVerses(input: {

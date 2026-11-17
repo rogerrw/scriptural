@@ -1,6 +1,5 @@
 'use server';
 
-import { randomUUID } from 'node:crypto';
 import { Prisma, type PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { auth } from '@/auth';
@@ -214,14 +213,13 @@ export async function recordAttempt(
       });
       const reviewSession = openReviewSession({
         latestSession: latest ? { ...latest, finishedVerseIds: [] } : null,
-        newSessionId: randomUUID(),
       });
-      if (!reviewSession.resumed) {
-        await tx.reviewSession.create({ data: { id: reviewSession.sessionId, userId } });
-      }
+      const sessionId = reviewSession.resumed
+        ? reviewSession.sessionId
+        : (await tx.reviewSession.create({ data: { userId } })).id;
 
       const [attachment] = recordReviewSessionAttempts({
-        sessionId: reviewSession.sessionId,
+        sessionId,
         verseIds: [userVerse.id],
       });
       const reviewedAt = new Date();

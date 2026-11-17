@@ -4,11 +4,16 @@ export type LatestSession = {
   readonly finishedVerseIds: readonly number[];
 };
 
-export type ReviewSession = {
-  readonly sessionId: string;
-  readonly resumed: boolean;
-  readonly finishedVerseIds: readonly number[];
-};
+export type ReviewSession =
+  | {
+      readonly sessionId: string;
+      readonly resumed: true;
+      readonly finishedVerseIds: readonly number[];
+    }
+  | {
+      readonly resumed: false;
+      readonly finishedVerseIds: readonly [];
+    };
 
 export type ReviewSessionAttempt = {
   readonly sessionId: string;
@@ -17,7 +22,6 @@ export type ReviewSessionAttempt = {
 
 export function openReviewSession(input: {
   readonly latestSession: LatestSession | null;
-  readonly newSessionId: string;
 }): ReviewSession {
   const latest = input.latestSession;
   if (latest !== null && latest.endedAt === null) {
@@ -27,7 +31,7 @@ export function openReviewSession(input: {
       finishedVerseIds: latest.finishedVerseIds,
     };
   }
-  return { sessionId: input.newSessionId, resumed: false, finishedVerseIds: [] };
+  return { resumed: false, finishedVerseIds: [] };
 }
 
 export function recordReviewSessionAttempts(input: {
