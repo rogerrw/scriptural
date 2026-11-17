@@ -57,6 +57,17 @@ test('a log that stops early does not finish', () => {
   assert.equal(replayKeystrokes('Jesus wept.', typeEach('Jesus', 50)), null);
 });
 
+test('a pre-selected difficulty tightens the time target', () => {
+  const finished = replayKeystrokes('Ab', [
+    { kind: 'insert', char: 'A', t: 0 },
+    { kind: 'insert', char: 'b', t: 400 },
+  ]);
+  assert.ok(finished);
+  const score = gradeAttempt(finished, { meanCpm: 250, bestGrade: null }, 5);
+  assert.equal(score.difficulty, 5);
+  assert.ok(Math.abs(score.grade - 95.555556) < 0.001);
+});
+
 test('twice the target time zeroes only the speed portion', () => {
   const verse = 'Ab';
   const finished = replayKeystrokes(verse, [

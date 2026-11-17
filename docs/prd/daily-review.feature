@@ -21,10 +21,16 @@ Feature: Daily review
       When I open Daily Review
       Then the review session includes "John 3:16" ESV
 
-    Scenario: A verse due in the future is left out
-      Given I have saved "John 3:16" ESV due at "2026-11-17T00:00:00-08:00"
+    Scenario: A verse due in the future is left out when due verses fill the session
+      Given my review limit is 2
+      And I have saved "John 1:1" ESV with no due time
+      And I have saved "John 3:16" ESV due at "2026-11-17T00:00:00-08:00"
       When I open Daily Review
-      Then the review session does not include "John 3:16" ESV
+      Then the review session order is:
+        | reference |
+        | John 1:1  |
+        | John 1:1  |
+      And the review session does not include "John 3:16" ESV
 
     Scenario: Another person's verse is left out
       Given another person has a due verse "John 3:16" ESV
@@ -36,9 +42,12 @@ Feature: Daily review
         | reference   | translation | reviews | mastery | due                          |
         | John 1:1    | ESV         | 0       |         |                              |
         | John 1:2    | ESV         | 1       | 40      | 2026-11-15T00:00:00-08:00    |
+      And my review limit is 4
       When I open Daily Review
       Then the review session order is:
         | reference |
+        | John 1:1  |
+        | John 1:2  |
         | John 1:1  |
         | John 1:2  |
 
@@ -47,9 +56,12 @@ Feature: Daily review
         | reference | translation | reviews | mastery | due                       |
         | John 1:1  | ESV         | 1       | 90      | 2026-11-15T00:00:00-08:00 |
         | John 1:2  | ESV         | 1       | 40      | 2026-11-15T00:00:00-08:00 |
+      And my review limit is 4
       When I open Daily Review
       Then the review session order is:
         | reference |
+        | John 1:2  |
+        | John 1:1  |
         | John 1:2  |
         | John 1:1  |
 
@@ -58,9 +70,12 @@ Feature: Daily review
         | reference | translation | reviews | mastery | due                       |
         | John 1:1  | ESV         | 1       | 40      | 2026-11-15T00:00:00-08:00 |
         | John 1:2  | ESV         | 1       | 40      | 2026-11-14T00:00:00-08:00 |
+      And my review limit is 4
       When I open Daily Review
       Then the review session order is:
         | reference |
+        | John 1:2  |
+        | John 1:1  |
         | John 1:2  |
         | John 1:1  |
 
@@ -69,16 +84,23 @@ Feature: Daily review
         | reference | translation | reviews | mastery | due                       |
         | John 1:1  | ESV         | 1       | 40      | 2026-11-15T00:00:00-08:00 |
         | John 1:2  | ESV         | 1       | 40      |                           |
+      And my review limit is 4
       When I open Daily Review
       Then the review session order is:
         | reference |
         | John 1:2  |
         | John 1:1  |
+        | John 1:2  |
+        | John 1:1  |
 
-    Scenario: A verse in two sets appears once
-      Given "John 3:16" ESV is due and belongs to "Hope" and "Faith"
+    Scenario: A verse in two sets is selected once
+      Given my review limit is 2
+      And "John 3:16" ESV is due and belongs to "Hope" and "Faith"
       When I open Daily Review
-      Then the review session includes "John 3:16" ESV once
+      Then the review session order is:
+        | reference |
+        | John 3:16 |
+        | John 3:16 |
 
     Scenario: Two translations of one reference are two verses
       Given "John 3:16" ESV is due
@@ -87,14 +109,24 @@ Feature: Daily review
       Then the review session includes "John 3:16" ESV
       And the review session includes "John 3:16" KJV
 
-    Scenario: The review session stops at my review limit
+    Scenario: The review session has exactly my review limit attempts
       Given my review limit is 2
       And I have 3 due verses in due order "John 1:1", "John 1:2", "John 1:3"
       When I open Daily Review
       Then the review session order is:
         | reference |
         | John 1:1  |
+        | John 1:1  |
+
+    Scenario: An odd review limit reviews the last verse once
+      Given my review limit is 3
+      And I have 3 due verses in due order "John 1:1", "John 1:2", "John 1:3"
+      When I open Daily Review
+      Then the review session order is:
+        | reference |
+        | John 1:1  |
         | John 1:2  |
+        | John 1:1  |
 
     Scenario: A first attempt shows the passage
       Given "John 3:16" ESV has no prior review
@@ -121,6 +153,13 @@ Feature: Daily review
       Then the review session includes "John 3:16" ESV
       And the review session does not include "Romans 8:28" ESV
       And the review session does not include "Psalm 23:1" ESV
+
+    Scenario: A set whose verses are all due later
+      Given "Hope" contains "John 3:16" ESV due at "2026-11-17T00:00:00-08:00"
+      And that is the soonest due time in "Hope"
+      When I choose Review on "Hope"
+      Then I see "Nothing is due."
+      And I see the soonest due time in "America/Los_Angeles"
 
     Scenario: A set review session stops at my review limit
       Given my review limit is 1
@@ -183,10 +222,10 @@ Feature: Daily review
       Then I see the end screen
       And the ReviewSession has an end time
 
-    Scenario: A finished verse does not return in this review session
-      Given the review session order is "John 1:1", then "John 1:2"
+    Scenario: A finished attempt does not add another copy
+      Given the review session order is "John 1:1", then "John 1:2", then "John 1:1", then "John 1:2"
       When I finish "John 1:1" with grade 0
-      Then the remaining review session is "John 1:2"
+      Then the remaining review session is "John 1:2", then "John 1:1", then "John 1:2"
       And "John 1:1" is already due again
 
   Rule: Set the next due time from the grade just stored
@@ -287,12 +326,14 @@ Feature: Daily review
       Then I see "You have no saved verses."
       And I see a link to "Search for a verse"
 
-    Scenario: Every verse is due later
-      Given "John 3:16" ESV is due at "2026-11-17T00:00:00-08:00"
-      And that is my soonest due time
+    Scenario: A stored verse that is not due still fills Daily Review
+      Given my review limit is 2
+      And "John 3:16" ESV is due at "2026-11-17T00:00:00-08:00"
       When I open Daily Review
-      Then I see "Nothing is due."
-      And I see the soonest due time in "America/Los_Angeles"
+      Then the review session order is:
+        | reference |
+        | John 3:16 |
+        | John 3:16 |
 
   Rule: Choose how many verses and which midnight
     As a signed-in person
