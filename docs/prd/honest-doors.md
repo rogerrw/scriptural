@@ -32,7 +32,7 @@ The sign-in form and the register form both render `FormSuccess` and `FormError`
 
 ## Out of scope
 
-A mailer, a verification page, password reset, and the **Review** button on a verse set are out of scope. The set button belongs to [Daily review](daily-review.md). The **Review** section of **Account settings** belongs to that document too. Profile, Email, Password, Notifications, and Appearance stay unavailable. Ownership checks on create, save, and add belong to [Your verses only](your-verses-only.md).
+A mailer and a verification page stay out of scope here. [Verification mail](verification-mail.md) specifies them and replaces R1 and R2 after this document lands. Password reset and the **Review** button on a verse set stay out of scope. The set button belongs to [Daily review](daily-review.md). The **Review** section of **Account settings** belongs to that document too. Profile, Email, Password, Notifications, and Appearance stay unavailable. Ownership checks on create, save, and add belong to [Your verses only](your-verses-only.md).
 
 ## Decided
 

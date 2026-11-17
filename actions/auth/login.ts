@@ -5,7 +5,7 @@ import { signIn } from '@/auth';
 import { DEFAULT_LOGIN_REDIRECT } from '@/routes';
 import { AuthError } from 'next-auth';
 import { getUserByEmail } from '@/data/user';
-import { generateVerificationToken } from '@/lib/tokens';
+import { decideEmailSignup } from '@/lib/emailSignup';
 
 export const login = async (values: z.infer<typeof LoginSchema>) => {
   const validatedFields = LoginSchema.safeParse(values);
@@ -22,8 +22,14 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
   }
 
   if (!existingUser.emailVerified) {
-    await generateVerificationToken(email);
-    return { success: 'Confirmation email sent!' };
+    const signup = decideEmailSignup({
+      kind: 'password-sign-in',
+      email,
+      emailVerified: null,
+    });
+    if ('error' in signup) {
+      return signup;
+    }
   }
 
   try {

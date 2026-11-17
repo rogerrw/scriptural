@@ -1,12 +1,13 @@
 'use server';
 import * as z from 'zod';
-import bcrypt from 'bcryptjs';
-import prisma from '@/prisma';
 import { RegisterSchema } from '@/app/auth/register/schema';
-import { getUserByEmail } from '@/data/user';
-import { generateVerificationToken } from '@/lib/tokens';
+import { decideEmailSignup } from '@/lib/emailSignup';
 
-export const register = async (values: z.infer<typeof RegisterSchema>) => {
+export const register = async (
+  values: z.infer<typeof RegisterSchema>,
+): Promise<
+  { error: string; success?: undefined } | { success: string; error?: undefined }
+> => {
   const validatedFields = RegisterSchema.safeParse(values);
 
   if (!validatedFields.success) {
@@ -15,28 +16,15 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
 
   const { email, password, name } = validatedFields.data;
 
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  const existingEmail = await getUserByEmail(email);
-
-  if (existingEmail) {
-    return {
-      error: 'Email already in use',
-    };
+  const signup = decideEmailSignup({
+    kind: 'register',
+    email,
+    name,
+    password,
+  });
+  if ('error' in signup) {
+    return signup;
   }
 
-  await prisma.user.create({
-    data: {
-      name,
-      email,
-      password: hashedPassword,
-    },
-  });
-
-  const verificationRequest = await generateVerificationToken(email);
-  // TODO: Send verification email
-
-  return {
-    success: 'Confirmation email sent!',
-  };
+  return { error: 'Email signup is unavailable.' };
 };
