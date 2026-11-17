@@ -42,13 +42,15 @@ const ReviewSession = ({ sessionId, startIndex, verses, finished: opening }: Rev
   );
   const [finished, setFinished] = useState<readonly FinishedVerse[]>(opening);
   const [error, setError] = useState<string | undefined>();
-  let position = index;
-  let view = stage;
-  let shownFinished = finished;
-  if (seenQueue !== queue) {
-    position = startIndex;
-    view = startIndex >= verses.length ? { kind: 'ended' } : { kind: 'typing' };
-    shownFinished = opening;
+  const queueChanged = seenQueue !== queue;
+  const position = queueChanged ? startIndex : index;
+  const view: Stage = queueChanged
+    ? startIndex >= verses.length
+      ? { kind: 'ended' }
+      : { kind: 'typing' }
+    : stage;
+  const shownFinished = queueChanged ? opening : finished;
+  if (queueChanged) {
     setSeenQueue(queue);
     setIndex(startIndex);
     setStage(view);
@@ -111,17 +113,17 @@ const ReviewSession = ({ sessionId, startIndex, verses, finished: opening }: Rev
           <p>
             {verse.reference} {verse.translation}
           </p>
-          <p>Grade {Math.round(stage.summary.score.grade)}</p>
-          <p>Errors {stage.summary.score.errorCount}</p>
+          <p>Grade {Math.round(view.summary.score.grade)}</p>
+          <p>Errors {view.summary.score.errorCount}</p>
           <p>
-            Speed {Math.round(stage.summary.score.cpm)} characters per minute (
-            {Math.round(stage.summary.wpm)} words per minute)
+            Speed {Math.round(view.summary.score.cpm)} characters per minute (
+            {Math.round(view.summary.wpm)} words per minute)
           </p>
-          <p>This translation {Math.round(stage.summary.translationCpm)} characters per minute</p>
-          <p>Mastery {Math.round(stage.summary.mastery)}</p>
-          <p>Overall speed {Math.round(stage.summary.globalCpm)} characters per minute</p>
+          <p>This translation {Math.round(view.summary.translationCpm)} characters per minute</p>
+          <p>Mastery {Math.round(view.summary.mastery)}</p>
+          <p>Overall speed {Math.round(view.summary.globalCpm)} characters per minute</p>
         </div>
-        <VerseTypedText verseText={verse.verseText} typed={stage.typed} />
+        <VerseTypedText verseText={verse.verseText} typed={view.typed} />
         <Button
           className="mt-auto"
           onClick={() => {
