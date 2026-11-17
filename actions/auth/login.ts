@@ -1,11 +1,11 @@
 'use server';
 import * as z from 'zod';
+import bcrypt from 'bcryptjs';
 import { LoginSchema } from '@/app/auth/signin/schema';
 import { signIn } from '@/auth';
 import { DEFAULT_LOGIN_REDIRECT } from '@/routes';
 import { AuthError } from 'next-auth';
-import { getUserByEmail } from '@/data/user';
-import { decideEmailSignup } from '@/lib/emailSignup';
+import { applyVerification, worldForEmail } from '@/lib/applyVerification';
 
 export const login = async (values: z.infer<typeof LoginSchema>) => {
   const validatedFields = LoginSchema.safeParse(values);
@@ -14,22 +14,25 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
   }
 
   const { email, password } = validatedFields.data;
+  const before = await worldForEmail(email);
+  const account = before.users[0];
+  const passwordMatches = account?.password
+    ? await bcrypt.compare(password, account.password)
+    : false;
+  const decision = await applyVerification(
+    before,
+    { kind: 'sign-in', email, passwordMatches, send: 'accepted' },
+    Date.now(),
+  );
 
-  const existingUser = await getUserByEmail(email);
-
-  if (!existingUser || !existingUser.email || !existingUser.password) {
-    return { error: 'Invalid credentials' };
-  }
-
-  if (!existingUser.emailVerified) {
-    const signup = decideEmailSignup({
-      kind: 'password-sign-in',
-      email,
-      emailVerified: null,
-    });
-    if ('error' in signup) {
-      return signup;
+  if (!decision.signedIn) {
+    if (decision.error) {
+      return { error: decision.error };
     }
+    if (decision.success) {
+      return { success: decision.success };
+    }
+    return { error: 'Something went wrong' };
   }
 
   try {

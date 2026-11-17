@@ -5,6 +5,7 @@ import { ReviewYearHeatmap } from '@/component-library/review-year-grid';
 import { reviewStreakQuery } from '@/lib/review-streak';
 import { accountTimeZone } from '@/lib/reviewSettings';
 import prisma from '@/prisma';
+import { Card, CardHeader, CardTitle, CardContent } from '@/component-library/card';
 
 const HomePage = async () => {
   const session = await auth();
@@ -47,7 +48,14 @@ const HomePage = async () => {
       <p>Practiced verses: {practicedVerses}</p>
       <p>Completed review sessions: {completedReviewSessions}</p>
       <ReviewStreak days={streak.days} />
-      <ReviewYearHeatmap />
+      <Card className="mt-8 border-none bg-transparent text-gray-700 dark:bg-gray-900 dark:text-gray-300">
+        <CardHeader>
+          <CardTitle>Verses Reviewed</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ReviewYearHeatmap />
+        </CardContent>
+      </Card>
     </div>
   );
 };
