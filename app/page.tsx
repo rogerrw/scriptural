@@ -2,6 +2,7 @@ import { auth } from '@/auth';
 import StoreBrowserTimezone from '@/app/StoreBrowserTimezone';
 import { ReviewYearHeatmap } from '@/component-library/review-year-grid';
 import prisma from '@/prisma';
+import { Card, CardHeader, CardTitle, CardContent } from '@/component-library/card';
 
 const HomePage = async () => {
   const session = await auth();
@@ -23,7 +24,14 @@ const HomePage = async () => {
       <StoreBrowserTimezone stored={account?.timezone ?? null} />
       <p>Practiced verses: {practicedVerses}</p>
       <p>Completed review sessions: {completedReviewSessions}</p>
-      <ReviewYearHeatmap />
+      <Card className="mt-8 border-none bg-transparent text-gray-700 dark:bg-gray-900 dark:text-gray-300">
+        <CardHeader>
+          <CardTitle>Verses Reviewed</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ReviewYearHeatmap />
+        </CardContent>
+      </Card>
     </div>
   );
 };
