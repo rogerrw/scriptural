@@ -111,9 +111,26 @@ export function difficultyFor(mastery: number): Difficulty {
   return Math.min(5, Math.max(0, step)) as Difficulty;
 }
 
-export function gradeAttempt(attempt: FinishedAttempt, history: TypingHistory): Score {
+/**
+ * Calculates the score for a finished attempt. THe mathematical formula is:
+ * 
+ * score = accuracy + speed
+ * 
+ * where:
+ * 
+ * accuracy = (1 - errorCount / length) * 60
+ * speed = 40 * (targetSeconds - elapsedSeconds) / targetSeconds
+ * 
+ * @param attempt 
+ * @param history 
+ * @returns 
+ */
+export function gradeAttempt(
+  attempt: FinishedAttempt,
+  history: TypingHistory,
+  difficulty: Difficulty = difficultyFor(history.bestGrade ?? 0),
+): Score {
   const length = attempt.verseText.length;
-  const difficulty = difficultyFor(history.bestGrade ?? 0);
   const elapsedMs = attempt.elapsedMs;
   const cpm = length === 0 ? 0 : (length * 60000) / Math.max(elapsedMs, 1);
 

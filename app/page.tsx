@@ -12,7 +12,9 @@ const HomePage = async () => {
 
   const [account, practicedVerses, completedReviewSessions] = await Promise.all([
     prisma.user.findUnique({ where: { id: userId }, select: { timezone: true } }),
-    prisma.userVerse.count({ where: { userId, userVerseReviews: { some: {} } } }),
+    prisma.userVerse.count({
+      where: { userId, userVerseReviews: { some: { reviewedAt: { not: null } } } },
+    }),
     prisma.reviewSession.count({ where: { userId, endedAt: { not: null } } }),
   ]);
 

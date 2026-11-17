@@ -39,10 +39,10 @@ const RecordAttemptSchema = z.object({
 });
 
 type RecordedReview = {
-  grade: number;
-  errorCount: number;
-  elapsedMs: number;
-  cpm: number;
+  grade: number | null;
+  errorCount: number | null;
+  elapsedMs: number | null;
+  cpm: number | null;
   difficulty: number;
   userVerse: { userId: string };
 };
@@ -53,12 +53,34 @@ function isDifficulty(value: number): value is Score['difficulty'] {
 
 function toScore(review: RecordedReview): Score {
   return {
-    grade: review.grade,
-    errorCount: review.errorCount,
-    elapsedMs: review.elapsedMs,
-    cpm: review.cpm,
+    grade: review.grade ?? 0,
+    errorCount: review.errorCount ?? 0,
+    elapsedMs: review.elapsedMs ?? 0,
+    cpm: review.cpm ?? 0,
     difficulty: isDifficulty(review.difficulty) ? review.difficulty : 0,
   };
+}
+
+async function rememberAttempt(
+  tx: Prisma.TransactionClient,
+  userVerseId: number,
+  grade: number,
+  reviewedAt: Date,
+  timeZone: string,
+) {
+  const current = await tx.userVerse.findUnique({
+    where: { id: userVerseId },
+    select: { highestScore: true },
+  });
+  await tx.userVerse.update({
+    where: { id: userVerseId },
+    data: {
+      mostRecentScore: grade,
+      highestScore: Math.max(current?.highestScore ?? grade, grade),
+      lastReviewedAt: reviewedAt,
+      nextReviewAt: nextReviewAt({ grade, now: reviewedAt, timeZone }),
+    },
+  });
 }
 
 async function summaryFor(
@@ -86,7 +108,7 @@ async function summaryFor(
       _max: { grade: true },
     }),
     tx.userVerseReview.findFirst({
-      where: { userVerseId },
+      where: { userVerseId, reviewedAt: { not: null } },
       orderBy: [{ reviewedAt: 'desc' }, { id: 'desc' }],
       select: { cpm: true },
     }),
@@ -168,13 +190,25 @@ export async function recordAttempt(
         return { error: 'The verse is not finished.' };
       }
 
+      const pending = saved
+        ? await tx.userVerseReview.findFirst({
+            where: {
+              userVerseId: saved.id,
+              reviewedAt: null,
+              reviewSession: { userId, endedAt: null, planned: true },
+            },
+            orderBy: { id: 'asc' },
+          })
+        : null;
+
       const [mean, best, account] = await Promise.all([
         tx.userVerseReview.aggregate({
-          where: { userVerse: { userId } },
+          where: { userVerse: { userId }, reviewedAt: { not: null } },
           _avg: { cpm: true },
         }),
         tx.userVerseReview.aggregate({
           where: {
+            reviewedAt: { not: null },
             userVerse: {
               userId,
               book: data.book,
@@ -188,10 +222,15 @@ export async function recordAttempt(
         tx.user.findUnique({ where: { id: userId }, select: { timezone: true } }),
       ]);
 
-      const score = gradeAttempt(finished, {
-        meanCpm: mean._avg.cpm,
-        bestGrade: best._max.grade,
-      });
+      const plannedDifficulty = pending && isDifficulty(pending.difficulty) ? pending.difficulty : undefined;
+      const score = gradeAttempt(
+        finished,
+        {
+          meanCpm: mean._avg.cpm,
+          bestGrade: best._max.grade,
+        },
+        plannedDifficulty,
+      );
 
       const userVerse =
         saved ??
@@ -206,49 +245,57 @@ export async function recordAttempt(
           },
         }));
 
-      const latest = await tx.reviewSession.findFirst({
-        where: { userId },
-        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-        select: { id: true, endedAt: true },
-      });
-      const reviewSession = openReviewSession({
-        latestSession: latest ? { ...latest, finishedVerseIds: [] } : null,
-      });
-      const sessionId = reviewSession.resumed
-        ? reviewSession.sessionId
-        : (await tx.reviewSession.create({ data: { userId } })).id;
-
-      const [attachment] = recordReviewSessionAttempts({
-        sessionId,
-        verseIds: [userVerse.id],
-      });
       const reviewedAt = new Date();
+      const timeZone = accountTimeZone(account?.timezone ?? null);
 
-      await tx.userVerseReview.create({
-        data: {
-          attemptId: data.attemptId,
-          userVerseId: attachment.userVerseId,
-          reviewSessionId: attachment.sessionId,
-          reviewedAt,
-          difficulty: score.difficulty,
-          grade: score.grade,
-          errorCount: score.errorCount,
-          elapsedMs: score.elapsedMs,
-          cpm: score.cpm,
-          keystrokes: data.keystrokes,
-        },
-      });
-
-      await tx.userVerse.update({
-        where: { id: userVerse.id },
-        data: {
-          nextReviewAt: nextReviewAt({
+      if (pending) {
+        await tx.userVerseReview.update({
+          where: { id: pending.id },
+          data: {
+            attemptId: data.attemptId,
+            reviewedAt,
             grade: score.grade,
-            now: reviewedAt,
-            timeZone: accountTimeZone(account?.timezone ?? null),
-          }),
-        },
-      });
+            errorCount: score.errorCount,
+            elapsedMs: score.elapsedMs,
+            cpm: score.cpm,
+            keystrokes: data.keystrokes,
+          },
+        });
+      } else {
+        const latest = await tx.reviewSession.findFirst({
+          where: { userId },
+          orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+          select: { id: true, endedAt: true },
+        });
+        const reviewSession = openReviewSession({
+          latestSession: latest ? { ...latest, finishedVerseIds: [] } : null,
+        });
+        const sessionId = reviewSession.resumed
+          ? reviewSession.sessionId
+          : (await tx.reviewSession.create({ data: { userId } })).id;
+
+        const [attachment] = recordReviewSessionAttempts({
+          sessionId,
+          verseIds: [userVerse.id],
+        });
+
+        await tx.userVerseReview.create({
+          data: {
+            attemptId: data.attemptId,
+            userVerseId: attachment.userVerseId,
+            reviewSessionId: attachment.sessionId,
+            reviewedAt,
+            difficulty: score.difficulty,
+            grade: score.grade,
+            errorCount: score.errorCount,
+            elapsedMs: score.elapsedMs,
+            cpm: score.cpm,
+            keystrokes: data.keystrokes,
+          },
+        });
+      }
+
+      await rememberAttempt(tx, userVerse.id, score.grade, reviewedAt, timeZone);
 
       const summary = await summaryFor(tx, userId, data, userVerse.id, score);
       return { summary };

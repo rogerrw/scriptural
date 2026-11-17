@@ -2,7 +2,7 @@
 
 import { auth } from '@/auth';
 import prisma from '@/prisma';
-import { selectCardReviewSession, selectDueReviewSession } from '@/lib/dueVerses';
+import { generateReviewSession, selectCardReviewSession, selectDueReviewSession } from '@/lib/dueVerses';
 import { openReviewSession } from '@/lib/reviewSession';
 import { accountTimeZone } from '@/lib/reviewSettings';
 import {
@@ -42,9 +42,10 @@ type Passage = {
   nextReviewAt: Date | null;
 };
 
-function reviewSessionVerse(passage: Passage): ReviewSessionVerse {
+function reviewSessionVerse(passage: Passage, reviewId: number | null): ReviewSessionVerse {
   return {
     id: passage.id,
+    reviewId,
     reference: verseReference(passage),
     book: passage.book,
     chapter: passage.chapter,
@@ -78,10 +79,13 @@ export async function loadReviewSession(request: ReviewSessionRequest): Promise<
     select: {
       id: true,
       endedAt: true,
+      planned: true,
       userVerseReviews: {
         orderBy: { id: 'asc' },
         select: {
+          id: true,
           userVerseId: true,
+          reviewedAt: true,
           grade: true,
           difficulty: true,
           cpm: true,
@@ -91,19 +95,25 @@ export async function loadReviewSession(request: ReviewSessionRequest): Promise<
     },
   });
 
+  const completed = (latest?.userVerseReviews ?? []).filter(
+    (review): review is typeof review & { grade: number; cpm: number } =>
+      review.reviewedAt !== null && review.grade !== null && review.cpm !== null,
+  );
+
   const reviewSession = openReviewSession({
     latestSession: latest
       ? {
           id: latest.id,
           endedAt: latest.endedAt,
-          finishedVerseIds: latest.userVerseReviews.map((review) => review.userVerseId),
+          finishedVerseIds: completed.map((review) => review.userVerseId),
         }
       : null,
   });
 
   const finished: readonly FinishedVerse[] = reviewSession.resumed
-    ? (latest?.userVerseReviews ?? []).map((review) => ({
+    ? completed.map((review) => ({
         id: review.userVerseId,
+        reviewId: review.id,
         reference: verseReference(review.userVerse),
         translation: review.userVerse.translation,
         grade: review.grade,
@@ -111,6 +121,22 @@ export async function loadReviewSession(request: ReviewSessionRequest): Promise<
         wpm: toWpm(review.cpm),
       }))
     : [];
+
+  if (request.kind === 'due' && reviewSession.resumed && latest?.planned) {
+    const planned = latest.userVerseReviews ?? [];
+    const startIndex = planned.findIndex((review) => review.reviewedAt === null);
+    return {
+      status: 'ready',
+      sessionId: reviewSession.sessionId,
+      startIndex: startIndex === -1 ? planned.length : startIndex,
+      verses: planned.map((review) => reviewSessionVerse(review.userVerse, review.id)),
+      finished,
+    };
+  }
+
+  if (request.kind === 'due' && !reviewSession.resumed) {
+    return generateDailyReview({ userId, reviewLimit: account.reviewLimit, now });
+  }
 
   const remaining =
     request.kind === 'card'
@@ -132,7 +158,7 @@ export async function loadReviewSession(request: ReviewSessionRequest): Promise<
 
   if ('empty' in remaining) {
     return finished.length > 0 && reviewSession.resumed
-      ? { status: 'ready', sessionId: reviewSession.sessionId, verses: [], finished }
+      ? { status: 'ready', sessionId: reviewSession.sessionId, startIndex: 0, verses: [], finished }
       : remaining.empty;
   }
 
@@ -140,7 +166,7 @@ export async function loadReviewSession(request: ReviewSessionRequest): Promise<
     ? reviewSession.sessionId
     : (await prisma.reviewSession.create({ data: { userId } })).id;
 
-  return { status: 'ready', sessionId, verses: remaining.verses, finished };
+  return { status: 'ready', sessionId, startIndex: 0, verses: remaining.verses, finished };
 }
 
 async function dueVerses(input: {
@@ -187,7 +213,82 @@ async function dueVerses(input: {
     return { empty: emptyReviewSession({ verses, request, now, timeZone }) };
   }
 
-  return { verses: chosen.map((row) => reviewSessionVerse(row.passage)) };
+  return { verses: chosen.map((row) => reviewSessionVerse(row.passage, null)) };
+}
+
+async function generateDailyReview(input: {
+  userId: string;
+  reviewLimit: number;
+  now: Date;
+}): Promise<LoadedReviewSession> {
+  const rows = await prisma.userVerse.findMany({
+    where: { userId: input.userId },
+    select: {
+      ...PASSAGE,
+      lastReviewedAt: true,
+      mostRecentScore: true,
+      highestScore: true,
+      VerseSetVerse: { select: { verseSet: { select: { name: true } } } },
+    },
+  });
+  if (rows.length === 0) {
+    return { status: 'no-verses' };
+  }
+
+  const plan = generateReviewSession({
+    verses: rows.map((row) => ({
+      id: row.id,
+      userId: row.userId,
+      reference: verseReference(row),
+      translation: row.translation,
+      nextReviewAt: row.nextReviewAt,
+      setNames: row.VerseSetVerse.map((link) => link.verseSet.name),
+      highestScore: row.highestScore,
+      mostRecentScore: row.mostRecentScore,
+      lastReviewedAt: row.lastReviewedAt,
+    })),
+    userId: input.userId,
+    now: input.now,
+    reviewLimit: input.reviewLimit,
+  });
+  if (plan.length === 0) {
+    return { status: 'no-verses' };
+  }
+
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  const created = await prisma.reviewSession.create({
+    data: {
+      userId: input.userId,
+      planned: true,
+      userVerseReviews: {
+        create: plan.map((attempt) => ({
+          userVerseId: attempt.userVerseId,
+          difficulty: attempt.difficulty,
+        })),
+      },
+    },
+    select: {
+      id: true,
+      userVerseReviews: {
+        orderBy: { id: 'asc' },
+        select: { id: true, userVerseId: true },
+      },
+    },
+  });
+
+  return {
+    status: 'ready',
+    sessionId: created.id,
+    startIndex: 0,
+    verses: created.userVerseReviews.map((review) => {
+      const row = byId.get(review.userVerseId);
+      if (!row) {
+        throw new Error('Planned verse is missing.');
+      }
+      return reviewSessionVerse(row, review.id);
+    }),
+    finished: [],
+  };
 }
 
 async function cardVerses(input: {
@@ -226,5 +327,5 @@ async function cardVerses(input: {
     return { empty: { status: 'no-verses' } };
   }
 
-  return { verses: chosen.map((row) => reviewSessionVerse(row.passage)) };
+  return { verses: chosen.map((row) => reviewSessionVerse(row.passage, null)) };
 }

@@ -48,6 +48,7 @@ export type ReviewSessionRequest =
 
 export type ReviewSessionVerse = {
   readonly id: number;
+  readonly reviewId: number | null;
   readonly reference: string;
   readonly book: string;
   readonly chapter: number;
@@ -58,6 +59,7 @@ export type ReviewSessionVerse = {
 
 export type FinishedVerse = {
   readonly id: number;
+  readonly reviewId: number | null;
   readonly reference: string;
   readonly translation: string;
   readonly grade: number;
@@ -71,6 +73,7 @@ export type LoadedReviewSession =
   | {
       readonly status: 'ready';
       readonly sessionId: string;
+      readonly startIndex: number;
       readonly verses: readonly ReviewSessionVerse[];
       readonly finished: readonly FinishedVerse[];
     };

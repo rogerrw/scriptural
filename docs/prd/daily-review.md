@@ -16,15 +16,15 @@ The **Review** button on a verse set has no handler (`VerseSetContent`). A verse
 
 ## Requirements
 
-**R1.** **Daily Review** loads a review session for the signed-in person. The review session contains that person's due verses. A verse is due when `nextReviewAt` is null or when `nextReviewAt` is at or before the current time.
+**R1.** **Daily Review** loads a review session for the signed-in person. A verse is due when `nextReviewAt` is null or when `nextReviewAt` is at or before the current time. Due verses are chosen first. When fewer verses are due than the session needs, later verses fill the rest.
 
 **R2.** `nextReviewAt` is a timestamp on `UserVerse`. A new saved verse has a null `nextReviewAt`, so the verse is due.
 
-**R3.** The review session orders due verses in three passes. Unseen verses come first. An unseen verse has no `UserVerseReview`. The remaining verses follow, lowest mastery first. Mastery is the max `grade` already stored for that `UserVerse`. Verses with the same mastery follow, earliest `nextReviewAt` first. Null `nextReviewAt` sorts before any timestamp.
+**R3.** Due verses are ordered in three passes. Unseen verses come first. An unseen verse has no completed review (`lastReviewedAt` is null). The remaining verses follow, lowest `highestScore` first. Verses with the same score follow, earliest `nextReviewAt` first. Null `nextReviewAt` sorts before any timestamp.
 
-**R4.** The same `UserVerse` appears once in a review session, even when two sets contain that verse.
+**R4.** The same `UserVerse` is selected once, even when two sets contain that verse. The session can still schedule that verse for more than one attempt.
 
-**R5.** **Daily Review** in the header opens the due verses, at most `reviewLimit` of them, in the order from R3.
+**R5.** Header **Daily Review** builds exactly `reviewLimit` attempts. It selects `ceil(reviewLimit / 2)` verses, due verses first in the R3 order, then stored verses that are not due. Those fillers go oldest `lastReviewedAt` first (never reviewed first), then lower `highestScore`, then lower `mostRecentScore`. Each selected verse is scheduled twice, first at `floor(highestScore / 20)` clamped to 0–5, then one tier higher clamped to 5. A missing score starts at tier 0. The attempts run as every first pass, then every second pass. When `reviewLimit` is odd, the last selected verse is scheduled once, at the lower tier. When the person has fewer stored verses than that selection needs, the same verses gain extra passes, difficulty rising by one tier each pass and clamped at 5, until the attempt count is `reviewLimit`. `generateReviewSession` writes those attempts as `UserVerseReview` rows before typing. `reviewedAt` stays null until the attempt is finished. An open planned session is resumed from any browser.
 
 **R6.** **Review** on a verse set opens the due verses in that set, at most `reviewLimit` of them, in the order from R3.
 
@@ -36,9 +36,9 @@ The **Review** button on a verse set has no handler (`VerseSetContent`). A verse
 
 **R10.** The end screen shows the number of verses finished in the review session, the average grade for the review session, and the words per minute across those verses. That speed is the review session's speed. It is separate from the account-wide overall speed on an attempt summary. An expandable control lists each finished verse with its grade, its difficulty, and its words per minute.
 
-**R11.** A verse the person finishes leaves the review session. The verse does not return in that review session, including when the new `nextReviewAt` is still in the past.
+**R11.** Finishing an attempt marks that planned row. It does not add another copy of the verse. Later passes that were already planned stay in the session, including when the new `nextReviewAt` is still in the past.
 
-**R12.** Finishing a verse sets `nextReviewAt` from the mastery tier. The tier is `difficultyFor` in `lib/typing.ts`, applied to the grade just stored. The delays are below.
+**R12.** Finishing a verse sets `nextReviewAt` from the mastery tier. The tier is `difficultyFor` in `lib/typing.ts`, applied to the grade just stored. The same finish sets `lastReviewedAt` and `mostRecentScore`, and raises `highestScore` when the new grade is higher. The delays are below.
 
 | Tier | Best grade | Next review |
 | --- | --- | --- |
@@ -51,15 +51,15 @@ The **Review** button on a verse set has no handler (`VerseSetContent`). A verse
 
 Tier 0 stores the current time. The next load treats that verse as due. R11 still keeps the verse out of the review session that just finished it. A delay of 1 day or more is due at midnight in the account timezone, that many midnights after the finish. A finish on Monday with a 1-day delay is due at Tuesday 00:00 in that zone.
 
-**R13.** One open `ReviewSession` is the current review session. Each finished attempt in that review session is a `UserVerseReview` on it. A second review session creates a new `ReviewSession`.
+**R13.** One open `ReviewSession` is the current review session. Header **Daily Review** creates the `UserVerseReview` rows when the session is generated. A row is finished when `reviewedAt` is set. A second review session is created only when the latest session has an end time.
 
-**R14.** Reloading **Daily Review** resumes the open review session when one exists. Verses already reviewed in that session stay out of the remaining list. **Daily Review** creates a review session only when the person has no open review session.
+**R14.** Reloading **Daily Review** resumes the open planned session from its rows with no `reviewedAt`, in the order they were created. **Daily Review** generates a session only when the person has no open review session.
 
 **R15.** An open review session has no end time. The end screen sets `endedAt` on that `ReviewSession`.
 
-**R16.** The home count "Completed review sessions" counts sessions with `endedAt` set. The home count "Practiced verses" still counts saved verses with at least one review.
+**R16.** The home count "Completed review sessions" counts sessions with `endedAt` set. The home count "Practiced verses" counts saved verses with at least one review whose `reviewedAt` is set. A planned row that has not been typed does not count.
 
-**R17.** A person with no saved verses sees "You have no saved verses." and a link to **Search for a verse**. A person whose verses are all in the future sees "Nothing is due." and the soonest due time in the account timezone.
+**R17.** A person with no saved verses sees "You have no saved verses." and a link to **Search for a verse**. Header **Daily Review** still builds a session when every saved verse is due later. A set whose verses are all in the future sees "Nothing is due." and that set's soonest due time.
 
 **R18.** A failed verse lookup on the old form is removed. The review session does not ask the person to type a book, a chapter, or a verse number.
 
@@ -75,4 +75,4 @@ Hiding the passage, skip, email delivery, and charts beyond the two home counts 
 
 ## Decided
 
-Unseen verses come first. A finished verse stays out of the review session that finished it. The delay uses the grade just stored, and the table in R12 is the schedule. Reload continues the same `ReviewSession`. The header opens due verses up to `reviewLimit`. A set's **Review** button opens due verses in that set, with the same cap. The card keyboard walks the rest of that set's list. ESV and KJV of one reference are two verses. "Completed review sessions" counts finished review sessions. The end screen speed is the review session's speed. Due times for delays of 1 day or more fall at local midnight.
+Unseen verses come first. A finished attempt does not add another copy beyond the plan. The delay uses the grade just stored, and the table in R12 is the schedule. Reload continues the same `ReviewSession`. Header **Daily Review** generates exactly `reviewLimit` attempts. A set's **Review** button opens due verses in that set, capped at `reviewLimit`. The card keyboard walks the rest of that set's list. ESV and KJV of one reference are two verses. "Completed review sessions" counts finished review sessions. The end screen speed is the review session's speed. Due times for delays of 1 day or more fall at local midnight.

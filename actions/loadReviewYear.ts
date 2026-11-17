@@ -20,5 +20,5 @@ export async function loadReviewYear(timeZoneInput: string): Promise<ReviewYear>
     select: { userVerseId: true, reviewedAt: true },
   });
 
-  return query.build(rows);
+  return query.build(rows.filter((row): row is { userVerseId: number; reviewedAt: Date } => row.reviewedAt !== null));
 }

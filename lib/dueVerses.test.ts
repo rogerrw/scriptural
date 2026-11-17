@@ -1,6 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { selectCardReviewSession, selectDueReviewSession, type CardVerse, type DueVerse } from './dueVerses.ts';
+import {
+  generateReviewSession,
+  selectCardReviewSession,
+  selectDueReviewSession,
+  type CardVerse,
+  type DueVerse,
+  type StoredVerse,
+} from './dueVerses.ts';
 
 const ME = 'me';
 const NOW = new Date('2026-11-16T15:00:00-08:00');
@@ -343,4 +350,146 @@ test('a card review session stops at the review limit', () => {
     references(selectCardReviewSession({ verses: hopeCards(), startId: 2, reviewLimit: 2 })),
     ['John 1:2', 'John 1:3'],
   );
+});
+
+function stored(overrides: Partial<StoredVerse> & Pick<StoredVerse, 'id' | 'reference'>): StoredVerse {
+  return {
+    userId: ME,
+    translation: 'ESV',
+    nextReviewAt: null,
+    setNames: [],
+    highestScore: null,
+    mostRecentScore: null,
+    lastReviewedAt: null,
+    ...overrides,
+  };
+}
+
+function plan(verses: readonly StoredVerse[], reviewLimit: number) {
+  return generateReviewSession({ verses, userId: ME, now: NOW, reviewLimit });
+}
+
+test('enough due verses fill the session with two passes', () => {
+  const verses = [1, 2, 3, 4, 5, 6].map((id) =>
+    stored({
+      id,
+      reference: `John 1:${id}`,
+      highestScore: 40,
+      lastReviewedAt: new Date('2026-11-01T00:00:00-08:00'),
+      nextReviewAt: new Date(`2026-11-0${id}T00:00:00-08:00`),
+    }),
+  );
+  const attempts = plan(verses, 10);
+  assert.deepEqual(
+    attempts.map((attempt) => attempt.userVerseId),
+    [1, 2, 3, 4, 5, 1, 2, 3, 4, 5],
+  );
+  assert.deepEqual(
+    attempts.map((attempt) => attempt.difficulty),
+    [2, 2, 2, 2, 2, 3, 3, 3, 3, 3],
+  );
+});
+
+test('an odd review limit reviews the last selected verse once', () => {
+  const verses = [1, 2, 3].map((id) =>
+    stored({
+      id,
+      reference: `John 1:${id}`,
+      lastReviewedAt: new Date('2026-11-01T00:00:00-08:00'),
+      nextReviewAt: new Date(`2026-11-0${id}T00:00:00-08:00`),
+    }),
+  );
+  assert.deepEqual(
+    plan(verses, 3).map((attempt) => [attempt.userVerseId, attempt.difficulty]),
+    [
+      [1, 0],
+      [2, 0],
+      [1, 1],
+    ],
+  );
+});
+
+test('a future verse fills a session that does not have enough due verses', () => {
+  const attempts = plan(
+    [
+      stored({ id: 1, reference: 'John 1:1' }),
+      stored({
+        id: 2,
+        reference: 'John 1:2',
+        nextReviewAt: new Date('2026-11-20T00:00:00-08:00'),
+        lastReviewedAt: new Date('2026-11-10T00:00:00-08:00'),
+        highestScore: 80,
+      }),
+      stored({
+        id: 3,
+        reference: 'John 1:3',
+        nextReviewAt: new Date('2026-11-20T00:00:00-08:00'),
+        lastReviewedAt: new Date('2026-11-01T00:00:00-08:00'),
+        highestScore: 90,
+      }),
+    ],
+    4,
+  );
+  assert.deepEqual(
+    attempts.map((attempt) => attempt.userVerseId),
+    [1, 3, 1, 3],
+  );
+});
+
+test('the same familiarity is ordered by the lower recent score', () => {
+  const attempts = plan(
+    [
+      stored({
+        id: 2,
+        reference: 'John 1:2',
+        nextReviewAt: new Date('2026-11-20T00:00:00-08:00'),
+        lastReviewedAt: new Date('2026-11-01T00:00:00-08:00'),
+        highestScore: 40,
+        mostRecentScore: 30,
+      }),
+      stored({
+        id: 3,
+        reference: 'John 1:3',
+        nextReviewAt: new Date('2026-11-20T00:00:00-08:00'),
+        lastReviewedAt: new Date('2026-11-01T00:00:00-08:00'),
+        highestScore: 40,
+        mostRecentScore: 10,
+      }),
+    ],
+    4,
+  );
+  assert.deepEqual(
+    attempts.map((attempt) => attempt.userVerseId),
+    [3, 2, 3, 2],
+  );
+});
+
+test('a short library repeats verses until the session has reviewLimit attempts', () => {
+  const attempts = plan([stored({ id: 1, reference: 'John 1:1', highestScore: 80 })], 4);
+  assert.deepEqual(
+    attempts.map((attempt) => attempt.difficulty),
+    [4, 5, 5, 5],
+  );
+});
+
+test('a future verse stays out when due verses already fill the session', () => {
+  const attempts = plan(
+    [
+      stored({ id: 1, reference: 'John 1:1' }),
+      stored({
+        id: 2,
+        reference: 'John 1:2',
+        nextReviewAt: new Date('2026-11-20T00:00:00-08:00'),
+      }),
+    ],
+    2,
+  );
+  assert.deepEqual(
+    attempts.map((attempt) => attempt.userVerseId),
+    [1, 1],
+  );
+});
+
+test('no stored verses generate no review session', () => {
+  assert.deepEqual(plan([], 10), []);
 });

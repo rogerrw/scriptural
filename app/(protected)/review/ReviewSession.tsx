@@ -17,6 +17,7 @@ type Stage =
 
 type ReviewSessionProps = {
   sessionId: string;
+  startIndex: number;
   verses: readonly ReviewSessionVerse[];
   finished: readonly FinishedVerse[];
 };
@@ -28,21 +29,40 @@ function mean(values: readonly number[]): number {
   return values.reduce((total, value) => total + value, 0) / values.length;
 }
 
-const ReviewSession = ({ sessionId, verses, finished: opening }: ReviewSessionProps) => {
-  const [index, setIndex] = useState(0);
+function queueKey(verses: readonly ReviewSessionVerse[]): string {
+  return verses.map((verse) => verse.reviewId ?? verse.id).join(',');
+}
+
+const ReviewSession = ({ sessionId, startIndex, verses, finished: opening }: ReviewSessionProps) => {
+  const queue = queueKey(verses);
+  const [seenQueue, setSeenQueue] = useState(queue);
+  const [index, setIndex] = useState(startIndex);
   const [stage, setStage] = useState<Stage>(() =>
-    verses.length === 0 ? { kind: 'ended' } : { kind: 'typing' },
+    startIndex >= verses.length ? { kind: 'ended' } : { kind: 'typing' },
   );
   const [finished, setFinished] = useState<readonly FinishedVerse[]>(opening);
   const [error, setError] = useState<string | undefined>();
+  let position = index;
+  let view = stage;
+  let shownFinished = finished;
+  if (seenQueue !== queue) {
+    position = startIndex;
+    view = startIndex >= verses.length ? { kind: 'ended' } : { kind: 'typing' };
+    shownFinished = opening;
+    setSeenQueue(queue);
+    setIndex(startIndex);
+    setStage(view);
+    setFinished(opening);
+    setError(undefined);
+  }
 
   useEffect(() => {
-    if (stage.kind === 'ended') {
+    if (view.kind === 'ended') {
       void endReviewSession(sessionId);
     }
-  }, [stage.kind, sessionId]);
+  }, [view.kind, sessionId]);
 
-  if (stage.kind === 'ended') {
+  if (view.kind === 'ended') {
     return (
       <div
         id="review-session-summary"
@@ -50,18 +70,19 @@ const ReviewSession = ({ sessionId, verses, finished: opening }: ReviewSessionPr
       >
         <div className="space-y-2 text-center font-mono">
           <p>
-            {finished.length} {finished.length === 1 ? 'verse' : 'verses'} finished
+            {shownFinished.length} {shownFinished.length === 1 ? 'verse' : 'verses'} finished
           </p>
-          <p>Average grade {Math.round(mean(finished.map((verse) => verse.grade)))}</p>
+          <p>Average grade {Math.round(mean(shownFinished.map((verse) => verse.grade)))}</p>
           <p>
-            {Math.round(mean(finished.map((verse) => verse.wpm)))} words per minute for this review session
+            {Math.round(mean(shownFinished.map((verse) => verse.wpm)))} words per minute for this review
+            session
           </p>
         </div>
         <details className="font-mono text-sm">
           <summary className="cursor-pointer">Verses in this review session</summary>
           <ul className="mt-4 space-y-2">
-            {finished.map((verse) => (
-              <li key={verse.id}>
+            {shownFinished.map((verse, index) => (
+              <li key={verse.reviewId ?? index}>
                 {verse.reference} {verse.translation}, grade {Math.round(verse.grade)}, difficulty{' '}
                 {verse.difficulty}, {Math.round(verse.wpm)} words per minute
               </li>
@@ -75,9 +96,12 @@ const ReviewSession = ({ sessionId, verses, finished: opening }: ReviewSessionPr
     );
   }
 
-  const verse = verses[index];
+  const verse = verses[position] ?? verses[0];
+  if (!verse) {
+    return null;
+  }
 
-  if (stage.kind === 'summary') {
+  if (view.kind === 'summary') {
     return (
       <div
         id="attempt-summary"
@@ -101,8 +125,8 @@ const ReviewSession = ({ sessionId, verses, finished: opening }: ReviewSessionPr
         <Button
           className="mt-auto"
           onClick={() => {
-            if (index + 1 < verses.length) {
-              setIndex(index + 1);
+            if (position + 1 < verses.length) {
+              setIndex(position + 1);
               setStage({ kind: 'typing' });
               return;
             }
@@ -119,10 +143,10 @@ const ReviewSession = ({ sessionId, verses, finished: opening }: ReviewSessionPr
     <div className="fadein flex flex-col items-center gap-8 py-8">
       <FormError message={error} />
       <p className="font-mono">
-        {verse.reference} {verse.translation} ({index + 1} of {verses.length})
+        {verse.reference} {verse.translation} ({position + 1} of {verses.length})
       </p>
       <VerseTyper
-        key={verse.id}
+        key={verse.reviewId ?? verse.id}
         verseText={verse.verseText}
         onComplete={(attempt: FinishedAttempt) => {
           void recordAttempt({
@@ -147,6 +171,7 @@ const ReviewSession = ({ sessionId, verses, finished: opening }: ReviewSessionPr
               ...current,
               {
                 id: verse.id,
+                reviewId: verse.reviewId,
                 reference: verse.reference,
                 translation: verse.translation,
                 grade: result.summary.score.grade,

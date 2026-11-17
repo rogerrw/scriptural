@@ -30,9 +30,13 @@ const ReviewPage = async ({ searchParams }: { searchParams: Promise<SearchParams
     );
   }
 
+  const queue = reviewSession.verses.map((verse) => verse.reviewId ?? verse.id).join(',');
+
   return (
     <ReviewSession
+      key={`${reviewSession.sessionId}:${queue}`}
       sessionId={reviewSession.sessionId}
+      startIndex={reviewSession.startIndex}
       verses={reviewSession.verses}
       finished={reviewSession.finished}
     />
