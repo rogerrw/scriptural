@@ -1,28 +1,12 @@
+import { TZDate } from '@date-fns/tz';
+import { addDays, format, getDay } from 'date-fns';
+
 const WEEK_START = 1;
 const WEEKS_SHOWN = 53;
 const LABELED_WEEKDAYS: readonly number[] = [1, 3, 5];
-const WEEKDAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
 const HEAT_LEVELS = [0, 1, 2, 3, 4] as const;
-const MONTHS = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-] as const;
-const DAYS_IN_MONTH: readonly number[] = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
 type HeatLevel = (typeof HEAT_LEVELS)[number];
-
-declare const localDateBrand: unique symbol;
-type LocalDate = string & { readonly [localDateBrand]: true };
 
 export type ReviewInstant = {
   readonly userVerseId: number;
@@ -45,21 +29,13 @@ type WeekdayGutter = readonly [
 ];
 
 type DayCell = {
-  readonly date: LocalDate;
+  readonly date: string;
   readonly level: HeatLevel;
   readonly tooltip: string;
 };
 
 type Week = readonly [DayCell, DayCell, DayCell, DayCell, DayCell, DayCell, DayCell];
-type DateWeek = readonly [
-  LocalDate,
-  LocalDate,
-  LocalDate,
-  LocalDate,
-  LocalDate,
-  LocalDate,
-  LocalDate,
-];
+type DateWeek = readonly [TZDate, TZDate, TZDate, TZDate, TZDate, TZDate, TZDate];
 
 export type ReviewYear = {
   readonly weekdayLabels: WeekdayGutter;
@@ -74,76 +50,29 @@ export type ReviewYearQuery = {
   build(rows: readonly ReviewInstant[]): ReviewYear;
 };
 
-// Constructing the formatter is also how the zone is validated, so callers hold one proven zone.
-function localDateFormatter(timeZoneInput: string): Intl.DateTimeFormat {
-  try {
-    return new Intl.DateTimeFormat('en-US', {
-      timeZone: timeZoneInput,
-      calendar: 'gregory',
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric',
-    });
-  } catch {
+function timeZone(name: string): string {
+  if (Number.isNaN(new TZDate(0, name).getTime())) {
     throw new Error('Invalid time zone');
   }
+  return name;
 }
 
-function isLeapYear(year: number): boolean {
-  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+function localDay(instant: Date, zone: string): TZDate {
+  const zoned = new TZDate(instant, zone);
+  return new TZDate(zoned.getFullYear(), zoned.getMonth(), zoned.getDate(), zone);
 }
 
-function daysInMonth(year: number, month: number): number {
-  return month === 2 && isLeapYear(year) ? 29 : DAYS_IN_MONTH[month - 1];
+function utcMidnight(day: TZDate): Date {
+  return new Date(Date.UTC(day.getFullYear(), day.getMonth(), day.getDate()));
 }
 
-function localDateFromParts(year: number, month: number, day: number): LocalDate {
-  if (month < 1 || month > 12 || day < 1 || day > daysInMonth(year, month)) {
-    throw new Error(`Not a calendar date: ${year}-${month}-${day}`);
-  }
-  const padded = `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-  return `${String(year).padStart(4, '0')}-${padded}` as LocalDate;
+function dateKey(day: TZDate): string {
+  return format(day, 'yyyy-MM-dd');
 }
 
-function partsOf(date: LocalDate): { year: number; month: number; day: number } {
-  return {
-    year: Number(date.slice(0, 4)),
-    month: Number(date.slice(5, 7)),
-    day: Number(date.slice(8, 10)),
-  };
-}
-
-function localDateFromInstant(instant: Date, formatter: Intl.DateTimeFormat): LocalDate {
-  const parts = formatter.formatToParts(instant);
-  const read = (type: Intl.DateTimeFormatPartTypes): number => {
-    const part = parts.find((candidate) => candidate.type === type);
-    if (!part) {
-      throw new Error(`Formatted date has no ${type}`);
-    }
-    return Number(part.value);
-  };
-  return localDateFromParts(read('year'), read('month'), read('day'));
-}
-
-function addDays(date: LocalDate, amount: number): LocalDate {
-  const { year, month, day } = partsOf(date);
-  const shifted = new Date(Date.UTC(year, month - 1, day + amount));
-  return localDateFromParts(
-    shifted.getUTCFullYear(),
-    shifted.getUTCMonth() + 1,
-    shifted.getUTCDate(),
-  );
-}
-
-function utcDay(date: LocalDate): Date {
-  const { year, month, day } = partsOf(date);
-  return new Date(Date.UTC(year, month - 1, day));
-}
-
-// A calendar date's weekday is the same in every zone, so UTC does the weekday math.
-function weekdayRow(date: LocalDate): number {
-  const { year, month, day } = partsOf(date);
-  return (new Date(Date.UTC(year, month - 1, day)).getUTCDay() - WEEK_START + 7) % 7;
+// Monday is the first row, so Sunday lands on the last.
+function weekdayRow(day: TZDate): number {
+  return (getDay(day) - WEEK_START + 7) % 7;
 }
 
 function asWeek<T>(slots: readonly T[]): readonly [T, T, T, T, T, T, T] {
@@ -154,11 +83,11 @@ function asWeek<T>(slots: readonly T[]): readonly [T, T, T, T, T, T, T] {
 }
 
 // Fifty-three Monday-Sunday weeks, through Sunday of the current week.
-function weeksOfPastYear(today: LocalDate): readonly DateWeek[] {
+function weeksOfPastYear(today: TZDate): readonly DateWeek[] {
   const sunday = addDays(today, 6 - weekdayRow(today));
   const monday = addDays(sunday, -(WEEKS_SHOWN * 7 - 1));
 
-  const slots: LocalDate[] = [];
+  const slots: TZDate[] = [];
   for (let index = 0; index < WEEKS_SHOWN * 7; index += 1) {
     slots.push(addDays(monday, index));
   }
@@ -178,9 +107,8 @@ function heatLevel(count: number, max: number): HeatLevel {
   return HEAT_LEVELS[Math.min(filled, Math.max(1, Math.ceil((count / max) * filled)))];
 }
 
-function dayTooltip(date: LocalDate, count: number): string {
-  const { year, month, day } = partsOf(date);
-  const when = `${MONTHS[month - 1]} ${day}, ${year}`;
+function dayTooltip(day: TZDate, count: number): string {
+  const when = format(day, 'MMM d, yyyy');
   if (count === 0) {
     return `No verses on ${when}`;
   }
@@ -191,10 +119,11 @@ function dayTooltip(date: LocalDate, count: number): string {
 }
 
 function weekdayGutter(): WeekdayGutter {
+  const monday = new TZDate(2024, 0, 1, 'UTC');
   return asWeek(
     [0, 1, 2, 3, 4, 5, 6].map((row) => {
       const weekday = (WEEK_START + row) % 7;
-      return LABELED_WEEKDAYS.includes(weekday) ? WEEKDAY_SHORT[weekday] : null;
+      return LABELED_WEEKDAYS.includes(weekday) ? format(addDays(monday, row), 'EEE') : null;
     }),
   );
 }
@@ -203,14 +132,13 @@ function monthLabels(weeks: readonly DateWeek[]): readonly MonthLabel[] {
   const labels: MonthLabel[] = [];
   let seen = '';
   weeks.forEach((week, weekIndex) => {
-    for (const date of week) {
-      const { year, month } = partsOf(date);
-      const key = `${year}-${month}`;
+    for (const day of week) {
+      const key = format(day, 'yyyy-M');
       if (key === seen) {
         continue;
       }
       seen = key;
-      labels.push({ name: MONTHS[month - 1], weekIndex });
+      labels.push({ name: format(day, 'MMM'), weekIndex });
     }
   });
   // The opening month is dropped when the next one begins in this column or the next,
@@ -222,22 +150,24 @@ function monthLabels(weeks: readonly DateWeek[]): readonly MonthLabel[] {
 }
 
 export function reviewYearQuery(timeZoneInput: string, now: Date): ReviewYearQuery {
-  const formatter = localDateFormatter(timeZoneInput);
-  const skeleton = weeksOfPastYear(localDateFromInstant(now, formatter));
+  const zone = timeZone(timeZoneInput);
+  const skeleton = weeksOfPastYear(localDay(now, zone));
   const first = skeleton[0][0];
   const last = skeleton[skeleton.length - 1][6];
+  const firstKey = dateKey(first);
+  const lastKey = dateKey(last);
 
   return {
     // Two UTC days of slack on each side holds every zone's version of the first and last local day.
     // `build` keeps the exact days, which keeps a local-midnight solver out of this module.
-    start: utcDay(addDays(first, -2)),
-    end: utcDay(addDays(last, 2)),
+    start: utcMidnight(addDays(first, -2)),
+    end: utcMidnight(addDays(last, 2)),
 
     build(rows) {
       const versesByDate = new Map<string, Set<number>>();
       for (const row of rows) {
-        const date = localDateFromInstant(row.reviewedAt, formatter);
-        if (date < first || date > last) {
+        const date = dateKey(localDay(row.reviewedAt, zone));
+        if (date < firstKey || date > lastKey) {
           continue;
         }
         const verses = versesByDate.get(date) ?? new Set<number>();
@@ -252,12 +182,13 @@ export function reviewYearQuery(timeZoneInput: string, now: Date): ReviewYearQue
 
       const weeks = skeleton.map((week) =>
         asWeek(
-          week.map((date): DayCell => {
+          week.map((day): DayCell => {
+            const date = dateKey(day);
             const count = versesByDate.get(date)?.size ?? 0;
             return {
               date,
               level: heatLevel(count, max),
-              tooltip: dayTooltip(date, count),
+              tooltip: dayTooltip(day, count),
             };
           }),
         ),
