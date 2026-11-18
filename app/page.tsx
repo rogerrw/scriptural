@@ -47,7 +47,14 @@ const HomePage = async () => {
       <StoreBrowserTimezone stored={account?.timezone ?? null} />
       <p>Practiced verses: {practicedVerses}</p>
       <p>Completed review sessions: {completedReviewSessions}</p>
-      <ReviewStreak days={streak.days} />
+      <Card className="mt-8 border-none bg-transparent text-gray-700 dark:bg-gray-900 dark:text-gray-300">
+        <CardHeader>
+          <CardTitle>Daily Review</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ReviewStreak days={streak.days} />
+        </CardContent>
+      </Card>
       <Card className="mt-8 border-none bg-transparent text-gray-700 dark:bg-gray-900 dark:text-gray-300">
         <CardHeader>
           <CardTitle>Verses Reviewed</CardTitle>
