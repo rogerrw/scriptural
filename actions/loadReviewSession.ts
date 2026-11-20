@@ -1,5 +1,6 @@
 'use server';
 
+import { z } from 'zod';
 import { auth } from '@/auth';
 import prisma from '@/prisma';
 import { generateReviewSession, selectCardReviewSession, selectDueReviewSession } from '@/lib/dueVerses';
@@ -55,12 +56,28 @@ function reviewSessionVerse(passage: Passage, reviewId: number | null): ReviewSe
   };
 }
 
-export async function loadReviewSession(request: ReviewSessionRequest): Promise<LoadedReviewSession> {
+const ReviewSessionRequestSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('due') }),
+  z.object({ kind: z.literal('set'), setName: z.string().min(1) }),
+  z.object({
+    kind: z.literal('card'),
+    setId: z.string().cuid(),
+    startId: z.number().int().positive(),
+  }),
+]);
+
+export async function loadReviewSession(input: ReviewSessionRequest): Promise<LoadedReviewSession> {
   const session = await auth();
   const userId = session?.user?.id;
   if (!userId) {
     throw new Error('Unauthorized');
   }
+
+  const parsed = ReviewSessionRequestSchema.safeParse(input);
+  if (!parsed.success) {
+    throw new Error('Invalid review');
+  }
+  const request = parsed.data;
 
   const account = await prisma.user.findUnique({
     where: { id: userId },

@@ -1,5 +1,6 @@
 'use server';
 
+import { z } from 'zod';
 import { auth } from '@/auth';
 import {
   applyVerification,
@@ -16,11 +17,23 @@ async function signedInNow() {
   return !!session?.user;
 }
 
+const TokenSchema = z.string().uuid();
+
 export async function resendExpiredEmail(token: string): Promise<VerificationView> {
-  const before = await worldForToken(token);
+  const parsed = TokenSchema.safeParse(token);
+  if (!parsed.success) {
+    const decision = decideVerification(
+      { users: [], tokens: [], messages: [] },
+      { kind: 'open-verify', token: null, alreadySignedIn: await signedInNow() },
+      Date.now(),
+    );
+    return verificationView(decision);
+  }
+
+  const before = await worldForToken(parsed.data);
   const decision = await applyVerification(
     before,
-    { kind: 'resend-expired', token, send: 'accepted' },
+    { kind: 'resend-expired', token: parsed.data, send: 'accepted' },
     Date.now(),
   );
   return verificationView(decision);
@@ -30,10 +43,16 @@ export async function verifyIntent(
   _previous: VerificationView,
   formData: FormData,
 ): Promise<VerificationView> {
-  const tokenValue = formData.get('token');
-  const intent = formData.get('intent');
-  const token = typeof tokenValue === 'string' && tokenValue.length > 0 ? tokenValue : null;
-  if (token === null || intent !== 'Send a new confirmation email') {
+  const parsed = z
+    .object({
+      token: TokenSchema,
+      intent: z.literal('Send a new confirmation email'),
+    })
+    .safeParse({
+      token: formData.get('token'),
+      intent: formData.get('intent'),
+    });
+  if (!parsed.success) {
     const decision = decideVerification(
       { users: [], tokens: [], messages: [] },
       { kind: 'open-verify', token: null, alreadySignedIn: await signedInNow() },
@@ -41,5 +60,5 @@ export async function verifyIntent(
     );
     return verificationView(decision);
   }
-  return resendExpiredEmail(token);
+  return resendExpiredEmail(parsed.data.token);
 }

@@ -1,5 +1,5 @@
 'use server';
-import * as z from 'zod';
+import { z } from 'zod';
 import { RegisterSchema } from '@/app/auth/register/schema';
 import { applyVerification, worldForEmail } from '@/lib/applyVerification';
 

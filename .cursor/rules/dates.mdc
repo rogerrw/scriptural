@@ -1,0 +1,23 @@
+---
+description: Use date-fns for calendar math and formatting
+globs: lib/**/*.ts,actions/**/*.ts,app/**/*.tsx
+alwaysApply: false
+---
+
+# Dates
+
+Use `date-fns` for calendar math and formatting. Use `TZDate` from `@date-fns/tz` when a time zone matters. Account zones come from `accountTimeZone` in `lib/reviewSettings.ts`.
+
+Call `new Date()` only for "right now" at the edge (a server action or page). Pass that instant into `lib/` functions so tests can pin it.
+
+```typescript
+// ❌ BAD — hand-rolled zone math or locale formatting
+const parts = new Intl.DateTimeFormat('en-US', { timeZone }).formatToParts(now);
+return new Date().toLocaleDateString();
+
+// ✅ GOOD — date-fns, zone-aware, injectable now
+const day = new TZDate(now, accountTimeZone(stored));
+return format(addDays(day, delayDays), 'yyyy-MM-dd');
+```
+
+`Intl.DateTimeFormat().resolvedOptions().timeZone` is only for reading the browser's zone before storing it.

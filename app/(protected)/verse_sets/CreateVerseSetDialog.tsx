@@ -17,18 +17,15 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/component-library/form';
 import { Input } from '@/component-library/input';
 import { createVerseSet } from '@/actions/createVerseSet';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
 const CreateVerseSetDialog = () => {
-  const session = useSession();
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const form = useForm<z.infer<typeof VerseSetSchema>>({
     defaultValues: {
-      userId: session.data?.user?.id,
       name: '',
     },
   });

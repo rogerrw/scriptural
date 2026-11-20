@@ -1,0 +1,20 @@
+---
+description: Public and auth paths are declared in routes.ts
+globs: app/**/*.tsx,routes.ts,auth.config.ts,proxy.ts
+alwaysApply: false
+---
+
+# Routes
+
+`routes.ts` is the list of who can open a path. `proxy.ts` reads it.
+
+- `publicRoutes` — reachable signed out.
+- `authRoutes` — sign-in, register, and auth errors. Signed-in users redirect to `DEFAULT_LOGIN_REDIRECT`.
+- `apiAuthPrefix` — NextAuth handlers.
+
+Add a page to the matching list when it should be public or auth-only. Do not add a one-off signed-out check inside the page.
+
+```typescript
+// ✅ GOOD — new public page is declared once
+export const publicRoutes = ['/about', '/terms', '/support', '/privacy', '/auth/verify'];
+```

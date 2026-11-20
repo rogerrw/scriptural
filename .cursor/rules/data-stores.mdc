@@ -1,0 +1,20 @@
+---
+description: Prisma for app data, MongoDB only for Bible text
+globs: actions/**/*.ts,lib/**/*.ts,app/api/**/*.ts
+alwaysApply: false
+---
+
+# Data stores
+
+Postgres through Prisma is the app database: users, verse sets, reviews, and sessions. New user data goes in Prisma via `@/prisma`.
+
+MongoDB is only the Bible corpus. Look it up through `actions/fetchVerse.ts`. Do not add another route or client that queries the same collections.
+
+```typescript
+// ❌ BAD — app data in Mongo, or a second Bible fetch
+await mongoose.model('UserVerse').create({ userId, verseText });
+
+// ✅ GOOD — app rows in Prisma, scripture text from the existing action
+const verse = await fetchVerse(book, chapter, startingVerse, translation);
+await prisma.userVerse.create({ data: { userId, verseText: verse.text } });
+```

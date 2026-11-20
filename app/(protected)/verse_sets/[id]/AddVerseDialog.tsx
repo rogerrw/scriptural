@@ -1,6 +1,8 @@
 'use client';
 import React, { useEffect, useTransition, useState } from 'react';
 import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusIcon } from 'lucide-react';
 import { Button } from '@/component-library/button';
 import {
@@ -12,6 +14,7 @@ import {
   DialogTrigger,
   DialogFooter,
 } from '@/component-library/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/component-library/form';
 import { Input } from '@/component-library/input';
 import {
   Select,
@@ -29,13 +32,12 @@ import { addVerseToSet } from '@/actions/addVerseToSet';
 import { fetchVerse } from '@/actions/fetchVerse';
 import { FormError } from '@/app/ui/formMessage';
 import { books, translations } from '@/constants/bible';
-import { Label } from '@/component-library/label';
 
 const AddVerseSchema = z.object({
-  book: z.string(),
-  chapter: z.number(),
-  verse: z.number(),
-  translation: z.string().default('ESV'),
+  book: z.string().min(1),
+  chapter: z.number().int().positive(),
+  verse: z.number().int().positive(),
+  translation: z.string().min(1),
 });
 
 interface AddVerseDialogProps {
@@ -51,21 +53,29 @@ const AddVerseDialog = ({ verseSetId }: AddVerseDialogProps) => {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const [isPending, startTransition] = useTransition();
-
   const [fetchedVerse, setFetchedVerse] = useState<IVerseResult | undefined>();
-  const [book, setBook] = useState<string | undefined>();
-  const [chapterNumber, setChapterNumber] = useState<number | undefined>();
-  const [verseNumber, setVerseNumber] = useState<number | undefined>();
-  const [translation, setTranslation] = useState<string>('ESV');
+  const form = useForm<z.infer<typeof AddVerseSchema>>({
+    resolver: zodResolver(AddVerseSchema),
+    defaultValues: {
+      book: '',
+      chapter: undefined,
+      verse: undefined,
+      translation: 'ESV',
+    },
+  });
+  const book = form.watch('book');
+  const chapterNumber = form.watch('chapter');
+  const verseNumber = form.watch('verse');
+  const translation = form.watch('translation');
 
-  const handleSubmit = () => {
+  const handleSubmit = (values: z.infer<typeof AddVerseSchema>) => {
     setError(undefined);
     startTransition(async () => {
       const data = await addVerseToSet({
-        book: book || '',
-        chapter: chapterNumber || -1,
-        startingVerse: verseNumber || -1,
-        translation,
+        book: values.book,
+        chapter: values.chapter,
+        startingVerse: values.verse,
+        translation: values.translation,
         verseSetId,
       });
       if (data?.error) {
@@ -79,10 +89,7 @@ const AddVerseDialog = ({ verseSetId }: AddVerseDialogProps) => {
   };
 
   const resetForm = () => {
-    setBook(undefined);
-    setChapterNumber(undefined);
-    setVerseNumber(undefined);
-    setTranslation('ESV');
+    form.reset();
     setFetchedVerse(undefined);
     setError(undefined);
   };
@@ -93,16 +100,20 @@ const AddVerseDialog = ({ verseSetId }: AddVerseDialogProps) => {
       return;
     }
 
-    fetchVerse(book, chapterNumber, verseNumber, translation).then((data) => {
-      setFetchedVerse(data as IVerseResult);
-    });
+    fetchVerse(book, chapterNumber, verseNumber, translation)
+      .then((data) => {
+        setFetchedVerse(data);
+      })
+      .catch(() => {
+        setFetchedVerse(undefined);
+      });
   }, [book, chapterNumber, verseNumber, translation]);
 
-  const toggleDialog = (open: boolean) => {
-    if (!open) {
+  const toggleDialog = (nextOpen: boolean) => {
+    if (!nextOpen) {
       resetForm();
     }
-    setOpen(open);
+    setOpen(nextOpen);
   };
 
   return (
@@ -120,79 +131,117 @@ const AddVerseDialog = ({ verseSetId }: AddVerseDialogProps) => {
           <DialogDescription>Enter the details of the verse you want to add.</DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-row gap-4 py-4">
-          <div className="flex flex-col gap-2">
-            <Label className="text-xs">Book</Label>
-            <Combobox
-              options={books.map((book) => ({
-                value: book.value,
-                label: book.label,
-              }))}
-              onChange={(value) => setBook(value)}
-              value={book}
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label className="text-xs">Chapter</Label>
-            <Input
-              type="number"
-              className="h-10 dark:bg-background"
-              onChange={(e) => setChapterNumber(Number(e.target.value))}
-              disabled={isPending}
-              value={chapterNumber || ''}
-              required
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label className="text-xs">Verse</Label>
-            <Input
-              type="number"
-              className="h-10 dark:bg-background"
-              onChange={(e) => setVerseNumber(Number(e.target.value))}
-              disabled={isPending}
-              value={verseNumber || ''}
-              required
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label className="text-xs">Translation</Label>
-            <Select value={translation} onValueChange={(value) => setTranslation(value)}>
-              <SelectTrigger className="h-10 w-[120px]">
-                <SelectValue placeholder="Translation" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Translations</SelectLabel>
-                  {translations.map((translation) => (
-                    <SelectItem key={translation.value} value={translation.value}>
-                      {translation.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        {fetchedVerse && (
-          <div className="fadein flex flex-col gap-4">
-            <VerseCard
-              verseText={fetchedVerse.text}
-              verseNumber={verseNumber}
-              book={book}
-              chapterNumber={chapterNumber}
-              translation={translation}
-            />
-          </div>
-        )}
-        <FormError message={error} />
-        <DialogFooter>
-          <Button type="button" variant="ghost" onClick={() => toggleDialog(false)}>
-            Cancel
-          </Button>
-          <Button disabled={!fetchedVerse} onClick={handleSubmit}>
-            Add Verse
-          </Button>
-        </DialogFooter>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)}>
+            <div className="flex flex-row gap-4 py-4">
+              <FormField
+                control={form.control}
+                name="book"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs">Book</FormLabel>
+                    <Combobox
+                      options={books.map((option) => ({
+                        value: option.value,
+                        label: option.label,
+                      }))}
+                      onChange={field.onChange}
+                      value={field.value}
+                    />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="chapter"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs">Chapter</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        className="h-10 dark:bg-background"
+                        disabled={isPending}
+                        value={field.value ?? ''}
+                        onChange={(event) => {
+                          const next = event.target.value;
+                          field.onChange(next === '' ? undefined : Number(next));
+                        }}
+                        required
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="verse"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs">Verse</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        className="h-10 dark:bg-background"
+                        disabled={isPending}
+                        value={field.value ?? ''}
+                        onChange={(event) => {
+                          const next = event.target.value;
+                          field.onChange(next === '' ? undefined : Number(next));
+                        }}
+                        required
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="translation"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs">Translation</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="h-10 w-[120px]">
+                        <SelectValue placeholder="Translation" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Translations</SelectLabel>
+                          {translations.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+            </div>
+            {fetchedVerse && (
+              <div className="fadein flex flex-col gap-4">
+                <VerseCard
+                  verseText={fetchedVerse.text}
+                  verseNumber={verseNumber}
+                  book={book}
+                  chapterNumber={chapterNumber}
+                  translation={translation}
+                />
+              </div>
+            )}
+            <FormError message={error} />
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={() => toggleDialog(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={!fetchedVerse || isPending}>
+                Add Verse
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

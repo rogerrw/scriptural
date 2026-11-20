@@ -1,20 +1,11 @@
-'use server';
 import { Card } from '@/component-library/card';
 
 import CreateVerseSetDialog from './CreateVerseSetDialog';
 import { fetchVerseSets } from '@/actions/fetchVerseSets';
 import VerseSetList from './VerseSetList';
-import { auth } from '@/auth';
 
 const VerseSetsLayout = async ({ children }: { children: React.ReactNode }) => {
-  const session = await auth();
-
-  const userId = session?.user?.id;
-  if (!userId) {
-    return <div>Loading...</div>;
-  }
-
-  const verseSets = await fetchVerseSets(userId);
+  const verseSets = await fetchVerseSets();
 
   return (
     <div className="fadein flex flex-row justify-center gap-8">

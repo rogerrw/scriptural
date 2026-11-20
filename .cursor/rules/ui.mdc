@@ -1,0 +1,25 @@
+---
+description: Component library, lucide icons, cn, and react-hook-form
+globs: "**/*.tsx"
+alwaysApply: false
+---
+
+# UI
+
+Shared controls live in `component-library/`. Merge classes with `cn` from `lib/utils.ts`. Icons come from `lucide-react`.
+
+Forms use `react-hook-form` with a Zod schema and `import { z } from 'zod'`.
+
+```tsx
+// ❌ BAD
+className={`${itemClass} ${selected ? selectedClass : ''}`}
+import { FaCheckCircle } from 'react-icons/fa';
+
+// ✅ GOOD
+className={cn(itemClass, selected && selectedClass)}
+import { CheckCircle } from 'lucide-react';
+
+const form = useForm<z.infer<typeof VerseSetSchema>>({
+  defaultValues: { name: '' },
+});
+```

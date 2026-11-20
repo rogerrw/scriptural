@@ -1,0 +1,23 @@
+---
+description: Keep scheduling and scoring as pure functions in lib with colocated tests
+globs: lib/**/*.ts
+alwaysApply: false
+---
+
+# Domain logic
+
+Scheduling, scoring, and session rules live in `lib/` as plain functions. No `'use server'`, no React, no Prisma.
+
+Pass `now: Date` in. Do not call `new Date()` inside these functions. Colocate tests as `*.test.ts` next to the module and pin the instant in the test.
+
+```typescript
+// ❌ BAD
+export function nextDue() {
+  return addDays(new Date(), 1);
+}
+
+// ✅ GOOD
+export function nextDue(now: Date): Date {
+  return addDays(now, 1);
+}
+```

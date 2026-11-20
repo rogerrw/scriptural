@@ -1,6 +1,5 @@
+import { CircleCheck, TriangleAlert } from 'lucide-react';
 import { Alert, AlertDescription } from '@/component-library/alert';
-import { FaCheckCircle } from 'react-icons/fa';
-import { IoWarning } from 'react-icons/io5';
 
 interface FormMessageProps {
   message?: string;
@@ -9,7 +8,7 @@ interface FormMessageProps {
 const FormError = ({ message }: FormMessageProps) => {
   return message ? (
     <Alert variant="destructive" className="bg-red-500">
-      <IoWarning />
+      <TriangleAlert className="h-4 w-4" />
       <AlertDescription>{message}</AlertDescription>
     </Alert>
   ) : (
@@ -20,7 +19,7 @@ const FormError = ({ message }: FormMessageProps) => {
 const FormWarning = ({ message }: FormMessageProps) => {
   return message ? (
     <Alert variant="destructive">
-      <IoWarning />
+      <TriangleAlert className="h-4 w-4" />
       <AlertDescription>{message}</AlertDescription>
     </Alert>
   ) : (
@@ -31,7 +30,7 @@ const FormWarning = ({ message }: FormMessageProps) => {
 const FormSuccess = ({ message }: FormMessageProps) => {
   return message ? (
     <Alert className="bg-emerald-500">
-      <FaCheckCircle />
+      <CircleCheck className="h-4 w-4" />
       <AlertDescription>{message}</AlertDescription>
     </Alert>
   ) : (

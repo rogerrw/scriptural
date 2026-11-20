@@ -1,0 +1,35 @@
+---
+description: Server actions validate input, check auth, and use the shared Prisma client
+globs: actions/**/*.ts
+alwaysApply: false
+---
+
+# Server actions
+
+Mutations and authenticated reads live in `actions/` with `'use server'` at the top of the file. Pages and layouts stay server components and do not use that directive.
+
+Import Zod as `import { z } from 'zod'`. Parse every argument with `safeParse` before using it. Take the user id from `auth()`, and return early when there is no session. Never trust a `userId` sent by the client. Scope queries with that id so one user cannot read or write another's rows.
+
+Import the shared client from `@/prisma`.
+
+```typescript
+'use server';
+
+import { z } from 'zod';
+import { auth } from '@/auth';
+import prisma from '@/prisma';
+
+const Schema = z.object({ verseSetVerseId: z.number().int().positive() });
+
+export async function deleteVerseFromSet(input: z.infer<typeof Schema>) {
+  const userId = (await auth())?.user?.id;
+  if (!userId) return { error: 'Unauthorized' };
+
+  const parsed = Schema.safeParse(input);
+  if (!parsed.success) return { error: 'Invalid verse' };
+
+  return prisma.verseSetVerse.findFirst({
+    where: { id: parsed.data.verseSetVerseId, verseSet: { userId } },
+  });
+}
+```

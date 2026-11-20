@@ -1,3 +1,6 @@
+import { TZDate } from '@date-fns/tz';
+import { format } from 'date-fns';
+
 export type LatestSession = {
   readonly id: string;
   readonly endedAt: Date | null;
@@ -97,11 +100,7 @@ function soonestDueAfter(
   if (upcoming.length === 0) {
     return null;
   }
-  return new Intl.DateTimeFormat('en-US', {
-    timeZone,
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(upcoming[0]);
+  return format(new TZDate(upcoming[0], timeZone), 'MMM d, yyyy, h:mm a');
 }
 
 export function emptyReviewSession(input: {

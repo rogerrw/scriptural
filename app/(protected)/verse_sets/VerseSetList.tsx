@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import { Button } from '@/component-library/button';
+import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/component-library/scroll-area';
 import { Separator } from '@/component-library/separator';
 import { VerseSet } from '@prisma/client';
@@ -18,7 +19,7 @@ const VerseSetList = ({ verseSets }: { verseSets: VerseSet[] }) => {
   return (
     <ScrollArea className="h-full w-full rounded-b-lg bg-gray-900 p-2">
       <Button
-        className={`${itemClass} ${allSelected ? selectedClass : ''}`}
+        className={cn(itemClass, allSelected && selectedClass)}
         variant="ghost"
         onClick={() => {
           router.push('/verse_sets');
@@ -32,7 +33,7 @@ const VerseSetList = ({ verseSets }: { verseSets: VerseSet[] }) => {
         return (
           <div key={verseSet.id}>
             <Button
-              className={`${itemClass} ${selected ? selectedClass : ''}`}
+              className={cn(itemClass, selected && selectedClass)}
               variant="ghost"
               onClick={() => {
                 router.push(`/verse_sets/${verseSet.id}`);

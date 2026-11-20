@@ -1,63 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-require('dotenv').config();
-import mongoose from 'mongoose';
-import dbConnect from '@/lib/mongodb';
-import { Books, Verse } from '@/model/Book.schema';
-import BookSchema from '@/model/Book.schema';
+import { fetchVerse } from '@/actions/fetchVerse';
 
-async function fetchVerseTranslations(
-  bookName: string,
-  chapterNum: number,
-  verseNum: number,
-  translation: string,
-) {
+export async function GET(req: NextRequest) {
+  const searchParams = req.nextUrl.searchParams;
+  const book = searchParams.get('book');
+  const chapter = Number(searchParams.get('chapter'));
+  const verse = Number(searchParams.get('verse'));
+  const translation = searchParams.get('translation') ?? '';
+  if (!book || !chapter || !verse || !translation) {
+    return NextResponse.json('Required parameters: book, chapter, verse, translation', { status: 500 });
+  }
+
   try {
-    await dbConnect();
-    const model = mongoose.model<Books>('Book', BookSchema, bookName);
-    const verseObj = await model.findOne(
-      { id: `${bookName}_${chapterNum}` },
-      { verses: { $elemMatch: { id: `${bookName}_${chapterNum}_${verseNum}` } } },
-    );
-    if (!verseObj) {
-      return;
-    }
-    const verseTranslations = verseObj.verses[0];
-    if (translation) {
-      return {
-        id: verseTranslations.id,
-        [translation]: verseTranslations[translation as keyof Verse],
-      };
-    }
-    return verseTranslations;
+    const result = await fetchVerse(book, chapter, verse, translation);
+    return NextResponse.json({ id: result.id, [translation]: result.text });
   } catch (error) {
-    console.error(`Error with fetching verse: ${error}`);
-  } finally {
-    delete (mongoose.connection.models as any)['Book'];
+    const message = error instanceof Error ? error.message : 'Invalid verse';
+    const status = message === 'Unauthorized' ? 401 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 }
-
-async function handler(req: NextRequest) {
-  if (req.method === 'GET') {
-    const searchParams = req.nextUrl.searchParams;
-    const bookName = searchParams.get('book');
-    const chapterNum = Number(searchParams.get('chapter'));
-    const verseNum = Number(searchParams.get('verse'));
-    const translation = searchParams.get('translation');
-    if (!bookName || !chapterNum || !verseNum) {
-      return NextResponse.json('Required parameters: book, chapter, verse', { status: 500 });
-    }
-
-    const res = await fetchVerseTranslations(
-      bookName as string,
-      chapterNum as number,
-      verseNum as number,
-      translation as string,
-    );
-    if (!res) {
-      return NextResponse.json({ error: 'Invalid verse' }, { status: 500 });
-    } else {
-      return NextResponse.json(res, { status: 200 });
-    }
-  }
-}
-export { handler as GET, handler as POST };

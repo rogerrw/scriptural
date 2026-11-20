@@ -1,9 +1,10 @@
+import { format } from 'date-fns';
 import StaticContent from '@/component-library/static-content';
 
 const PrivacyPage = () => {
   return (
     <StaticContent title="Privacy Policy">
-      <p>Last updated: {new Date().toLocaleDateString()}</p>
+      <p>Last updated: {format(new Date(), 'M/d/yyyy')}</p>
 
       <section>
         <h2>Our Commitment to Your Privacy</h2>
